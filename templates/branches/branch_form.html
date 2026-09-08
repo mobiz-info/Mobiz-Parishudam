@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Fill in the details below to save branch information{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-buildings"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Branch Name *</label>
+            <input type="text" name="name" value="{{ branch.name|default:'' }}" placeholder="e.g. Kochi Branch" required>
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" value="{{ branch.phone|default:'' }}" placeholder="e.g. 0484-2345678">
+        </div>
+
+        <div class="form-group">
+            <label>Address</label>
+            <textarea name="address" rows="3" placeholder="Enter branch full address">{{ branch.address|default:'' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'branch_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Branch</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

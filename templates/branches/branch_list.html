@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Branch Management{% endblock %}
+{% block page_title %}Branch Management{% endblock %}
+{% block page_subtitle %}Manage company branches and assigned locations{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'branch_create' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Add New Branch
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">All Branches</h3>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Branch Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Created Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for branch in branches %}
+            <tr>
+                <td style="font-weight: 600; color: #0f172a;">{{ branch.name }}</td>
+                <td>{{ branch.address|default:"--" }}</td>
+                <td>{{ branch.phone|default:"--" }}</td>
+                <td>{{ branch.created_at|date:"d M Y" }}</td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'branch_edit' branch.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'branch_delete' branch.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;" onclick="return confirm('Are you sure you want to delete branch \'{{ branch.name|escapejs }}\'?');">
+                            <i class="ph ph-trash"></i> Delete
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 24px;">No branches found. Click "Add New Branch" to create one.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Parishudam Coconut Oil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-header i {
+            font-size: 3rem;
+            color: #f59e0b;
+        }
+
+        .brand-header h1 {
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+
+        .brand-header p {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background: #4338ca;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="brand-header">
+            <i class="ph-fill ph-drop"></i>
+            <h1>Parishudam P&L</h1>
+            <p>Sign in to your account</p>
+        </div>
+
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Username / Email</label>
+                <div class="input-wrapper">
+                    <i class="ph ph-user"></i>
+                    <input type="text" name="username" placeholder="Enter username" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="ph ph-lock-key"></i>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+    </div>
+
+</body>
+</html>

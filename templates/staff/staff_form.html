@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Set up credentials and assigned branch for staff user{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-user-plus"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% if not profile %}
+        <div class="form-group">
+            <label>Username * (Used for Login)</label>
+            <input type="text" name="username" placeholder="e.g. anas" required>
+        </div>
+        {% else %}
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" value="{{ profile.user.username }}" disabled style="background: #f1f5f9; cursor: not-allowed;">
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" value="{{ profile.user.first_name|default:'' }}" placeholder="e.g. Anas">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" value="{{ profile.user.last_name|default:'' }}" placeholder="e.g. K">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" value="{{ profile.user.email|default:'' }}" placeholder="anas@parishudam.com">
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" value="{{ profile.phone|default:'' }}" placeholder="9876543210">
+        </div>
+
+        <div class="form-group">
+            <label>Password {% if profile %}<small style="color: #64748b;">(Leave blank to keep unchanged)</small>{% else %}*{% endif %}</label>
+            <input type="password" name="password" placeholder="Enter password" {% if not profile %}required{% endif %}>
+        </div>
+
+        <div class="form-group">
+            <label>User Role *</label>
+            <select name="role" required>
+                <option value="STAFF" {% if profile and profile.role == 'STAFF' %}selected{% endif %}>Staff (Branch Limited)</option>
+                <option value="ADMIN" {% if profile and profile.role == 'ADMIN' %}selected{% endif %}>Admin (Full System Access)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Assigned Branch (Required for Staff role)</label>
+            <select name="branch_id">
+                <option value="">-- None (Head Office) --</option>
+                {% for b in branches %}
+                    <option value="{{ b.id }}" {% if profile and profile.branch and profile.branch.id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if profile %}
+        <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+                <option value="active" {% if profile.status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if profile.status == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{% url 'staff_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Staff Member</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

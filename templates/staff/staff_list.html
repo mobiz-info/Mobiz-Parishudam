@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Management{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+{% block page_subtitle %}Manage system users, assigned branches, and access roles{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'staff_create' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Add New Staff Member
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">Staff Members & Accounts</h3>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Assigned Branch</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sp in staff_members %}
+            <tr>
+                <td><strong>{{ sp.user.username }}</strong></td>
+                <td style="font-weight: 600; color: #0f172a;">{{ sp.user.get_full_name|default:sp.user.username }}</td>
+                <td>
+                    <span class="badge-status {% if sp.role == 'ADMIN' %}badge-admin{% else %}badge-staff{% endif %}">
+                        {{ sp.role }}
+                    </span>
+                </td>
+                <td>
+                    {% if sp.branch %}
+                        <span style="font-weight: 600;">{{ sp.branch.name }}</span>
+                    {% else %}
+                        <em style="color: #94a3b8;">All Branches (Admin)</em>
+                    {% endif %}
+                </td>
+                <td>{{ sp.phone|default:"--" }}</td>
+                <td>
+                    <span class="badge-status {% if sp.status == 'active' %}badge-active{% else %}badge-inactive{% endif %}">
+                        {{ sp.status }}
+                    </span>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'staff_edit' sp.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'staff_toggle' sp.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: {% if sp.status == 'active' %}#dc2626{% else %}#16a34a{% endif %};">
+                            {% if sp.status == 'active' %}Deactivate{% else %}Activate{% endif %}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: #64748b; padding: 24px;">No staff members found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
