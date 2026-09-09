@@ -45,3 +45,38 @@ class StaffProfile(models.Model):
     @property
     def is_admin(self):
         return self.role == 'ADMIN' or self.user.is_superuser
+
+
+class Product(models.Model):
+    product_name = models.CharField(max_length=150)
+    unit = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.product_name
+
+    class Meta:
+        ordering = ['product_name']
+
+
+class ProductPackingSize(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='packing_sizes')
+    packing_name = models.CharField(max_length=100)
+    packing_value = models.DecimalField(max_digits=10, decimal_places=2)
+    base_qty_unit = models.CharField(max_length=50)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.product.product_name} - {self.packing_name}"
+
+    class Meta:
+        ordering = ['product', 'packing_value']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'packing_name'],
+                name='unique_product_packing_name'
+            )
+        ]

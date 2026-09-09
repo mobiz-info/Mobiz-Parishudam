@@ -4,10 +4,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
-from core.models import Branch, StaffProfile
+from core.models import Branch, StaffProfile, Product, ProductPackingSize
+
 
 from api.serializers import (
-    UserSerializer, StaffProfileSerializer, BranchSerializer
+    UserSerializer, StaffProfileSerializer, BranchSerializer,ProductSerializer,
+    ProductPackingSizeSerializer
 )
 
 class LoginAPIView(APIView):
@@ -57,3 +59,11 @@ class StaffProfileViewSet(viewsets.ModelViewSet):
     queryset = StaffProfile.objects.select_related('user', 'branch').all()
     serializer_class = StaffProfileSerializer
 
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+
+class ProductPackingSizeViewSet(viewsets.ModelViewSet):
+    queryset = ProductPackingSize.objects.select_related('product').all()
+    serializer_class = ProductPackingSizeSerializer

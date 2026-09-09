@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Fill in the details below to save product information{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-package"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" name="product_name" value="{{ product.product_name|default:'' }}" placeholder="" required>
+        </div>
+
+        <div class="form-group">
+            <label>Unit *</label>
+            <input type="text" name="unit" value="{{ product.unit|default:'' }}" placeholder="" required>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'product_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Product</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

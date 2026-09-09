@@ -7,7 +7,7 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 from datetime import datetime, date, timedelta
 
-from core.models import Branch, StaffProfile
+from core.models import Branch, StaffProfile, Product, ProductPackingSize
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -205,3 +205,180 @@ def staff_toggle_view(request, pk):
     profile.save()
     messages.success(request, f"Staff '{profile.user.username}' status updated to {profile.status.upper()}.")
     return redirect('staff_list')
+
+
+# --- PRODUCT MANAGEMENT ---
+@login_required
+def product_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    products = Product.objects.all()
+    return render(request, 'products/product_list.html', {'products': products})
+
+
+@login_required
+def product_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        product_name = request.POST.get('product_name', '').strip()
+        unit = request.POST.get('unit', '').strip()
+
+        if not product_name:
+            messages.error(request, "Product name is required.")
+        elif not unit:
+            messages.error(request, "Unit is required.")
+        else:
+            Product.objects.create(product_name=product_name, unit=unit)
+            messages.success(request, f"Product '{product_name}' created successfully.")
+            return redirect('product_list')
+
+    return render(request, 'products/product_form.html', {'title': 'Add New Product'})
+
+
+@login_required
+def product_edit_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == 'POST':
+        product.product_name = request.POST.get('product_name', '').strip()
+        product.unit = request.POST.get('unit', '').strip()
+
+        if not product.product_name:
+            messages.error(request, "Product name is required.")
+        elif not product.unit:
+            messages.error(request, "Unit is required.")
+        else:
+            product.save()
+            messages.success(request, f"Product '{product.product_name}' updated successfully.")
+            return redirect('product_list')
+
+    return render(request, 'products/product_form.html', {'product': product, 'title': f'Edit Product: {product.product_name}'})
+
+
+@login_required
+def product_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    product = get_object_or_404(Product, pk=pk)
+    product_name = product.product_name
+    product.delete()
+    messages.success(request, f"Product '{product_name}' deleted successfully.")
+    return redirect('product_list')
+
+
+# --- PRODUCT PACKING SIZE MANAGEMENT ---
+
+@login_required
+def product_packing_size_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    packing_sizes = ProductPackingSize.objects.select_related('product').all()
+    return render(request, 'product_packing_sizes/product_packing_size_list.html', {'packing_sizes': packing_sizes})
+
+
+@login_required
+def product_packing_size_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    products = Product.objects.all()
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product')
+        packing_name = request.POST.get('packing_name', '').strip()
+        packing_value = request.POST.get('packing_value')
+        base_qty_unit = request.POST.get('base_qty_unit', '').strip()
+        selling_price = request.POST.get('selling_price') or None
+
+        if not product_id:
+            messages.error(request, "Product is required.")
+        elif not packing_name:
+            messages.error(request, "Packing name is required.")
+        elif not packing_value:
+            messages.error(request, "Packing value is required.")
+        elif not base_qty_unit:
+            messages.error(request, "Base quantity unit is required.")
+        else:
+            ProductPackingSize.objects.create(
+                product_id=product_id,
+                packing_name=packing_name,
+                packing_value=packing_value,
+                base_qty_unit=base_qty_unit,
+                selling_price=selling_price
+            )
+            messages.success(request, "Packing size created successfully.")
+            return redirect('product_packing_size_list')
+
+    return render(request, 'product_packing_sizes/product_packing_size_form.html', {
+        'title': 'Add Packing Size',
+        'products': products
+    })
+
+
+@login_required
+def product_packing_size_edit_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    packing_size = get_object_or_404(ProductPackingSize, pk=pk)
+    products = Product.objects.all()
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product')
+        packing_name = request.POST.get('packing_name', '').strip()
+        packing_value = request.POST.get('packing_value')
+        base_qty_unit = request.POST.get('base_qty_unit', '').strip()
+        selling_price = request.POST.get('selling_price') or None
+
+        if not product_id:
+            messages.error(request, "Product is required.")
+        elif not packing_name:
+            messages.error(request, "Packing name is required.")
+        elif not packing_value:
+            messages.error(request, "Packing value is required.")
+        elif not base_qty_unit:
+            messages.error(request, "Base quantity unit is required.")
+        else:
+            packing_size.product_id = product_id
+            packing_size.packing_name = packing_name
+            packing_size.packing_value = packing_value
+            packing_size.base_qty_unit = base_qty_unit
+            packing_size.selling_price = selling_price
+            packing_size.save()
+
+            messages.success(request, "Packing size updated successfully.")
+            return redirect('product_packing_size_list')
+
+    return render(request, 'product_packing_sizes/product_packing_size_form.html', {
+        'title': 'Edit Packing Size',
+        'packing_size': packing_size,
+        'products': products
+    })
+
+
+@login_required
+def product_packing_size_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    packing_size = get_object_or_404(ProductPackingSize, pk=pk)
+    packing_size.delete()
+
+    messages.success(request, "Packing size deleted successfully.")
+    return redirect('product_packing_size_list')

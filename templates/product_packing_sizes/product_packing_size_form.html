@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Fill in the packing size details below{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-package"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Product *</label>
+            <select name="product" required>
+                <option value="">Select Product</option>
+                {% for item in products %}
+                <option value="{{ item.id }}" {% if packing_size.product_id == item.id %}selected{% endif %}>
+                    {{ item.product_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Packing Name *</label>
+            <input type="text" name="packing_name" value="{{ packing_size.packing_name|default:'' }}" placeholder="e.g. 500ml" required>
+        </div>
+
+        <div class="form-group">
+            <label>Packing Value *</label>
+            <input type="number" name="packing_value" value="{{ packing_size.packing_value|default:'' }}" step="0.01" min="0.01" placeholder="e.g. 500" required>
+        </div>
+
+        <div class="form-group">
+            <label>Base Qty Unit *</label>
+            <input type="text" name="base_qty_unit" value="{{ packing_size.base_qty_unit|default:'' }}" placeholder="e.g. 0.5L" required>
+        </div>
+
+        <div class="form-group">
+            <label>Selling Price</label>
+            <input type="number" name="selling_price" value="{{ packing_size.selling_price|default:'' }}" step="0.01" min="0" placeholder="Optional">
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'product_packing_size_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Packing Size</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
