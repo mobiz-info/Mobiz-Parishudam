@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Add or update unit information{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-ruler"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Unit Name *</label>
+            <input type="text" name="name" value="{{ unit.name|default:'' }}" required>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'unit_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Unit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

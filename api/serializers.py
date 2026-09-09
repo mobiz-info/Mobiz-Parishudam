@@ -34,13 +34,6 @@ class ProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Product name is required.")
         return value
 
-    def validate_unit(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Unit is required.")
-        return value
-
-
 class ProductPackingSizeSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.product_name', read_only=True)
 

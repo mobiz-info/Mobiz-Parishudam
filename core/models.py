@@ -46,10 +46,20 @@ class StaffProfile(models.Model):
     def is_admin(self):
         return self.role == 'ADMIN' or self.user.is_superuser
 
+class Unit(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class Product(models.Model):
     product_name = models.CharField(max_length=150)
-    unit = models.CharField(max_length=50)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, related_name='products')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

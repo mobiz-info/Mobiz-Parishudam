@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Unit Management{% endblock %}
+{% block page_title %}Unit Management{% endblock %}
+{% block page_subtitle %}Manage product units{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'unit_create' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Add New Unit
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">All Units</h3>
+    </div>
+
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Unit Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for unit in units %}
+            <tr>
+                <td style="font-weight: 600; color: #0f172a;">{{ unit.name }}</td>
+
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'unit_delete' unit.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;" onclick="return confirm('Are you sure you want to delete unit \'{{ unit.name|escapejs }}\'?');">
+                            <i class="ph ph-trash"></i> Delete
+                        </a>
+                    </div>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="2" style="text-align: center; color: #64748b; padding: 24px;">
+                    No units found. Click "Add New Unit" to create one.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
