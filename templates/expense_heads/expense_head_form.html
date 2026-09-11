@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Add a common expense head{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+        <i class="ph-bold ph-receipt"></i> {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Expense Head Name *</label>
+            <input type="text"
+                   name="name"
+                   placeholder=""
+                   required>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'expense_head_list' %}" class="btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn-primary">
+                Save Expense Head
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

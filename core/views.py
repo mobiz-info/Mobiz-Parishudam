@@ -10,6 +10,8 @@ from django.db.models import ProtectedError
 import json
 from django.http import JsonResponse
 from .models import Branch, StaffProfile, Product, ProductPackingSize, Unit
+from .models import ExpenseHead
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -376,7 +378,8 @@ def product_packing_size_create_view(request):
         product_id = request.POST.get('product')
         packing_name = request.POST.get('packing_name', '').strip()
         packing_value = request.POST.get('packing_value')
-        base_qty_unit = request.POST.get('base_qty_unit', '').strip()
+        packing_unit = request.POST.get('packing_unit')
+        base_qty_unit = request.POST.get('base_qty_unit')
         selling_price = request.POST.get('selling_price') or None
 
         if not product_id:
@@ -385,13 +388,16 @@ def product_packing_size_create_view(request):
             messages.error(request, "Packing name is required.")
         elif not packing_value:
             messages.error(request, "Packing value is required.")
+        elif not packing_unit:
+            messages.error(request, "Packing unit is required.")
         elif not base_qty_unit:
-            messages.error(request, "Base quantity unit is required.")
+            messages.error(request, "Base quantity in litres is required.")
         else:
             ProductPackingSize.objects.create(
                 product_id=product_id,
                 packing_name=packing_name,
                 packing_value=packing_value,
+                packing_unit=packing_unit,
                 base_qty_unit=base_qty_unit,
                 selling_price=selling_price
             )
@@ -417,7 +423,8 @@ def product_packing_size_edit_view(request, pk):
         product_id = request.POST.get('product')
         packing_name = request.POST.get('packing_name', '').strip()
         packing_value = request.POST.get('packing_value')
-        base_qty_unit = request.POST.get('base_qty_unit', '').strip()
+        packing_unit = request.POST.get('packing_unit')
+        base_qty_unit = request.POST.get('base_qty_unit')
         selling_price = request.POST.get('selling_price') or None
 
         if not product_id:
@@ -426,12 +433,15 @@ def product_packing_size_edit_view(request, pk):
             messages.error(request, "Packing name is required.")
         elif not packing_value:
             messages.error(request, "Packing value is required.")
+        elif not packing_unit:
+            messages.error(request, "Packing unit is required.")
         elif not base_qty_unit:
-            messages.error(request, "Base quantity unit is required.")
+            messages.error(request, "Base quantity in litres is required.")
         else:
             packing_size.product_id = product_id
             packing_size.packing_name = packing_name
             packing_size.packing_value = packing_value
+            packing_size.packing_unit = packing_unit
             packing_size.base_qty_unit = base_qty_unit
             packing_size.selling_price = selling_price
             packing_size.save()
@@ -454,6 +464,48 @@ def product_packing_size_delete_view(request, pk):
 
     packing_size = get_object_or_404(ProductPackingSize, pk=pk)
     packing_size.delete()
-
     messages.success(request, "Packing size deleted successfully.")
     return redirect('product_packing_size_list')
+
+@login_required
+def expense_head_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    expense_heads = ExpenseHead.objects.all()
+    return render(request, 'expense_heads/expense_head_list.html', {'expense_heads': expense_heads})
+
+
+@login_required
+def expense_head_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+
+        if not name:
+            messages.error(request, "Expense head name is required.")
+        elif ExpenseHead.objects.filter(name__iexact=name).exists():
+            messages.error(request, "This expense head already exists.")
+        else:
+            ExpenseHead.objects.create(name=name)
+            messages.success(request, f"Expense head '{name}' created successfully.")
+            return redirect('expense_head_list')
+
+    return render(request, 'expense_heads/expense_head_form.html', {'title': 'Add New Expense Head'})
+
+
+@login_required
+def expense_head_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    expense_head = get_object_or_404(ExpenseHead, pk=pk)
+    name = expense_head.name
+    expense_head.delete()
+    messages.success(request, f"Expense head '{name}' deleted successfully.")
+    return redirect('expense_head_list')

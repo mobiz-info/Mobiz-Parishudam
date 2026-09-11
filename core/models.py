@@ -71,10 +71,16 @@ class Product(models.Model):
 
 
 class ProductPackingSize(models.Model):
+    PACKING_UNIT_CHOICES = (
+        ('ml', 'ml'),
+        ('litre', 'Litre'),
+    )
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='packing_sizes')
     packing_name = models.CharField(max_length=100)
     packing_value = models.DecimalField(max_digits=10, decimal_places=2)
-    base_qty_unit = models.CharField(max_length=50)
+    packing_unit = models.CharField(max_length=10, choices=PACKING_UNIT_CHOICES, default='litre')
+    base_qty_unit = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -89,4 +95,15 @@ class ProductPackingSize(models.Model):
                 fields=['product', 'packing_name'],
                 name='unique_product_packing_name'
             )
-        ]
+        ]           
+
+class ExpenseHead(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']

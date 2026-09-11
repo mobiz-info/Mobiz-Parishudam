@@ -7,7 +7,8 @@ from core.views import (
     staff_list_view, staff_create_view, staff_edit_view, staff_toggle_view,
     product_list_view, product_create_view, product_edit_view, product_delete_view,
     product_packing_size_list_view, product_packing_size_create_view, product_packing_size_edit_view, product_packing_size_delete_view,
-    unit_list_view, unit_create_view, unit_delete_view
+    unit_list_view, unit_create_view, unit_delete_view,
+    expense_head_list_view, expense_head_create_view, expense_head_delete_view
 )
 
 urlpatterns = [
@@ -45,6 +46,10 @@ urlpatterns = [
     path('product-packing-sizes/<int:pk>/edit/', product_packing_size_edit_view, name='product_packing_size_edit'),
     path('product-packing-sizes/<int:pk>/delete/', product_packing_size_delete_view, name='product_packing_size_delete'),
 
+    path('expense-heads/', expense_head_list_view, name='expense_head_list'),
+    path('expense-heads/create/', expense_head_create_view, name='expense_head_create'),
+    path('expense-heads/<int:pk>/delete/', expense_head_delete_view, name='expense_head_delete'),
+    
     # API
     path('api/', include('api.urls')),
 ]

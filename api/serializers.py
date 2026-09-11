@@ -39,7 +39,7 @@ class ProductPackingSizeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductPackingSize
-        fields = ['id', 'product', 'product_name', 'packing_name', 'packing_value', 'base_qty_unit', 'selling_price', 'created_at', 'updated_at']
+        fields = ['id', 'product', 'product_name', 'packing_name', 'packing_value', 'packing_unit', 'base_qty_unit', 'selling_price', 'created_at', 'updated_at']
         read_only_fields = ['id', 'product_name', 'created_at', 'updated_at']
 
     def validate_packing_name(self, value):
@@ -54,9 +54,8 @@ class ProductPackingSizeSerializer(serializers.ModelSerializer):
         return value
 
     def validate_base_qty_unit(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Base quantity unit is required.")
+        if value <= 0:
+            raise serializers.ValidationError("Base quantity in litres must be greater than 0.")
         return value
 
     def validate_selling_price(self, value):
