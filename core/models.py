@@ -69,17 +69,22 @@ class Product(models.Model):
     class Meta:
         ordering = ['product_name']
 
+class PackingUnit(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 class ProductPackingSize(models.Model):
-    PACKING_UNIT_CHOICES = (
-        ('ml', 'ml'),
-        ('litre', 'Litre'),
-    )
-
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='packing_sizes')
     packing_name = models.CharField(max_length=100)
     packing_value = models.DecimalField(max_digits=10, decimal_places=2)
-    packing_unit = models.CharField(max_length=10, choices=PACKING_UNIT_CHOICES, default='litre')
+    packing_unit = models.ForeignKey(PackingUnit, on_delete=models.PROTECT, related_name='packing_sizes')
     base_qty_unit = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -107,3 +112,24 @@ class ExpenseHead(models.Model):
 
     class Meta:
         ordering = ['name']
+
+
+class ProductMargin(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='margins')
+    packing_size = models.ForeignKey(ProductPackingSize, on_delete=models.CASCADE, related_name='margins')
+    margin_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    effective_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.product.product_name} - {self.packing_size.packing_name} - ₹{self.margin_amount}"
+
+    class Meta:
+        ordering = ['-effective_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'packing_size', 'effective_date'],
+                name='unique_product_packing_margin_date'
+            )
+        ]

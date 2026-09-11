@@ -4,74 +4,120 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
-{% block page_subtitle %}Fill in the packing size details below{% endblock %}
+{% block page_subtitle %}Manage product packing size{% endblock %}
 
 {% block content %}
 
 <div class="premium-form-container">
 
     <div class="premium-form-title">
-        <i class="ph-bold ph-package"></i> {{ title }}
+        {{ title }}
     </div>
 
     <form method="POST">
         {% csrf_token %}
 
+        <!-- Product -->
         <div class="form-group">
             <label>Product *</label>
+
             <select name="product" required>
                 <option value="">Select Product</option>
 
-                {% for item in products %}
-                <option value="{{ item.id }}" {% if packing_size.product_id == item.id %}selected{% endif %}>
-                    {{ item.product_name }}
+                {% for product in products %}
+                <option value="{{ product.id }}"
+                    {% if packing_size and packing_size.product_id == product.id %}selected{% endif %}>
+                    {{ product.product_name }}
                 </option>
                 {% endfor %}
 
             </select>
         </div>
 
+
+        <!-- Packing Name -->
         <div class="form-group">
             <label>Packing Name *</label>
-            <input type="text" name="packing_name" value="{{ packing_size.packing_name|default:'' }}" placeholder="e.g. 500ml" required>
+
+            <input type="text"
+                   name="packing_name"
+                   value="{{ packing_size.packing_name|default:'' }}"
+                   placeholder="e.g. 500ml, 1 Litre"
+                   required>
         </div>
 
-        <div style="display: flex; gap: 12px;">
 
-            <div class="form-group" style="flex: 1;">
-                <label>Packing Value *</label>
-                <input type="number" name="packing_value" value="{{ packing_size.packing_value|default:'' }}" step="0.01" min="0.01" placeholder="e.g. 500" required>
-            </div>
-
-            <div class="form-group" style="flex: 1;">
-                <label>Packing Unit *</label>
-                <select name="packing_unit" required>
-                    <option value="">Select Unit</option>
-                    <option value="ml" {% if packing_size.packing_unit == 'ml' %}selected{% endif %}>ml</option>
-                    <option value="litre" {% if packing_size.packing_unit == 'litre' %}selected{% endif %}>Litre</option>
-                </select>
-            </div>
-
-        </div>
-
+        <!-- Packing Value -->
         <div class="form-group">
-            <label>Base Qty (Litres) *</label>
-            <input type="number" name="base_qty_unit" value="{{ packing_size.base_qty_unit|default:'' }}" step="0.01" min="0.01" placeholder="e.g. 0.5" required>
+            <label>Packing Value *</label>
+
+            <input type="number"
+                   name="packing_value"
+                   value="{{ packing_size.packing_value|default:'' }}"
+                   step="0.01"
+                   min="0"
+                   placeholder="e.g. 500 or 1"
+                   required>
         </div>
 
+
+        <!-- Packing Unit -->
+        <div class="form-group">
+            <label>Packing Unit *</label>
+
+            <select name="packing_unit" required>
+                <option value="">Select Packing Unit</option>
+
+                {% for unit in packing_units %}
+                <option value="{{ unit.id }}"
+                    {% if packing_size and packing_size.packing_unit_id == unit.id %}selected{% endif %}>
+                    {{ unit.name }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+
+        <!-- Base Quantity -->
+        <div class="form-group">
+            <label>Base Quantity *</label>
+
+            <input type="number"
+                   name="base_qty_unit"
+                   value="{{ packing_size.base_qty_unit|default:'' }}"
+                   step="0.01"
+                   min="0"
+                   placeholder="e.g. 0.5 or 1"
+                   required>
+        </div>
+
+
+        <!-- Selling Price -->
         <div class="form-group">
             <label>Selling Price</label>
-            <input type="number" name="selling_price" value="{{ packing_size.selling_price|default:'' }}" step="0.01" min="0" placeholder="Optional">
+
+            <input type="number"
+                   name="selling_price"
+                   value="{{ packing_size.selling_price|default:'' }}"
+                   step="0.01"
+                   min="0"
+                   placeholder="Enter selling price">
         </div>
 
+
+        <!-- Buttons -->
         <div class="form-actions">
-            <a href="{% url 'product_packing_size_list' %}" class="btn-secondary">
+
+            <a href="{% url 'product_packing_size_list' %}"
+               class="btn-secondary">
                 Cancel
             </a>
 
             <button type="submit" class="btn-primary">
                 Save Packing Size
             </button>
+
         </div>
 
     </form>

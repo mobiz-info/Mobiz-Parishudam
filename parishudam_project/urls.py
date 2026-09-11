@@ -8,8 +8,11 @@ from core.views import (
     product_list_view, product_create_view, product_edit_view, product_delete_view,
     product_packing_size_list_view, product_packing_size_create_view, product_packing_size_edit_view, product_packing_size_delete_view,
     unit_list_view, unit_create_view, unit_delete_view,
-    expense_head_list_view, expense_head_create_view, expense_head_delete_view
+    expense_head_list_view, expense_head_create_view, expense_head_delete_view,
+    margin_list_view, margin_create_view,  margin_edit_view, margin_delete_view,
+    packing_unit_list_view, packing_unit_create_view, packing_unit_edit_view, packing_unit_delete_view,
 )
+   
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -46,10 +49,22 @@ urlpatterns = [
     path('product-packing-sizes/<int:pk>/edit/', product_packing_size_edit_view, name='product_packing_size_edit'),
     path('product-packing-sizes/<int:pk>/delete/', product_packing_size_delete_view, name='product_packing_size_delete'),
 
+    path('packing-units/', packing_unit_list_view, name='packing_unit_list'),
+    path('packing-units/create/', packing_unit_create_view, name='packing_unit_create'),
+    path('packing-units/<int:pk>/edit/', packing_unit_edit_view, name='packing_unit_edit'),
+    path('packing-units/<int:pk>/delete/', packing_unit_delete_view, name='packing_unit_delete'),
+
+    #expense
     path('expense-heads/', expense_head_list_view, name='expense_head_list'),
     path('expense-heads/create/', expense_head_create_view, name='expense_head_create'),
     path('expense-heads/<int:pk>/delete/', expense_head_delete_view, name='expense_head_delete'),
-    
+
+    #margins
+    path('margins/', margin_list_view, name='margin_list'),
+    path('margins/create/', margin_create_view, name='margin_create'),
+    path('margins/<int:pk>/edit/', margin_edit_view, name='margin_edit'),
+    path('margins/<int:pk>/delete/', margin_delete_view, name='margin_delete'),
+
     # API
     path('api/', include('api.urls')),
 ]

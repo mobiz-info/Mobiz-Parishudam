@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_subtitle %}Manage packing unit{% endblock %}
+
+{% block content %}
+
+<div class="premium-form-container">
+
+    <div class="premium-form-title">
+        {{ title }}
+    </div>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="form-group">
+
+            <label>Packing Unit *</label>
+
+            <input type="text"
+                   name="name"
+                   value="{{ packing_unit.name|default:'' }}"
+                   placeholder="e.g. ml, Litre, Kg, Box, Pack"
+                   required>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a href="{% url 'packing_unit_list' %}"
+               class="btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="btn-primary">
+                Save Packing Unit
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Add product margin with effective date{% endblock %}
+
+{% block content %}
+<div class="premium-form-container">
+    <div class="premium-form-title">
+      {{ title }}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Product *</label>
+            <select name="product" required>
+                <option value="">Select Product</option>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.product_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Packing Size *</label>
+            <select name="packing_size" required>
+                <option value="">Select Packing Size</option>
+                {% for packing in packing_sizes %}
+                <option value="{{ packing.id }}">
+                    {{ packing.product.product_name }} - {{ packing.packing_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Margin Amount (₹) *</label>
+            <input type="number" name="margin_amount" step="0.01" min="0" placeholder="Enter the margin amount" required>
+        </div>
+
+        <div class="form-group">
+            <label>Effective Date *</label>
+            <input type="date" name="effective_date" required>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'margin_list' %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Margin</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

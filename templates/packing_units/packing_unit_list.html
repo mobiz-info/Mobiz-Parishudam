@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Packing Unit Management{% endblock %}
+
+{% block page_title %}Packing Unit Management{% endblock %}
+
+{% block page_subtitle %}Manage packing units{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'packing_unit_create' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Add Packing Unit
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="list-container">
+
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">
+            All Packing Units
+        </h3>
+    </div>
+
+    <table class="premium-table">
+
+        <thead>
+            <tr>
+                <th>Packing Unit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for unit in packing_units %}
+
+            <tr>
+
+                <td style="font-weight: 600; color: #0f172a;">
+                    {{ unit.name }}
+                </td>
+
+                <td>
+
+                    <div style="display: flex; gap: 8px;">
+
+                        <a href="{% url 'packing_unit_edit' unit.id %}"
+                           class="btn-secondary"
+                           style="padding: 4px 10px; font-size: 0.75rem;">
+                            <i class="ph ph-pencil"></i> Edit
+                        </a>
+
+                        <a href="{% url 'packing_unit_delete' unit.id %}"
+                           class="btn-secondary"
+                           style="padding: 4px 10px; font-size: 0.75rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;"
+                           onclick="return confirm('Are you sure you want to delete this packing unit?');">
+                            <i class="ph ph-trash"></i> Delete
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="2"
+                    style="text-align: center; color: #64748b; padding: 24px;">
+                    No packing units found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
