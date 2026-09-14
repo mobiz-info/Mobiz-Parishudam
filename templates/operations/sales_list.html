@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales History{% endblock %}
+{% block page_title %}Daily Sales History{% endblock %}
+{% block page_subtitle %}View detailed daily product sales records and stored historical margins{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'sales_entry' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Record Daily Sales
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter Toolbar -->
+<div class="filter-toolbar">
+    <form method="GET" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%;">
+        <div class="filter-item">
+            <label><i class="ph ph-calendar"></i> From Date:</label>
+            <input type="date" name="date_from" value="{{ request.GET.date_from|default:'' }}">
+        </div>
+
+        <div class="filter-item">
+            <label><i class="ph ph-calendar"></i> To Date:</label>
+            <input type="date" name="date_to" value="{{ request.GET.date_to|default:'' }}">
+        </div>
+
+        {% if is_admin %}
+        <div class="filter-item">
+            <label><i class="ph ph-buildings"></i> Branch:</label>
+            <select name="branch_id">
+                <option value="">All Branches</option>
+                {% for b in branches %}
+                    <option value="{{ b.id }}" {% if request.GET.branch_id == b.id|stringformat:"i" %}selected{% endif %}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-primary" style="padding: 8px 16px;">
+            <i class="ph ph-funnel"></i> Apply Filter
+        </button>
+        <a href="{% url 'sales_list' %}" class="btn-secondary" style="padding: 8px 14px;">
+            <i class="ph ph-arrows-counter-clockwise"></i> Reset
+        </a>
+    </form>
+</div>
+
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">Sales Log</h3>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Sale Date</th>
+                <th>Branch</th>
+                <th>Product</th>
+                <th>Packing Size</th>
+                <th>Quantity Sold</th>
+                <th>Volume (L)</th>
+                <th>Stored Margin</th>
+                <th>Profit (₹)</th>
+                <th>Logged By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sales %}
+            <tr>
+                <td><strong>{{ s.sale_date|date:"d M Y" }}</strong></td>
+                <td style="font-weight: 600; color: #0f172a;">{{ s.branch.name }}</td>
+                <td>{{ s.product.product_name }}</td>
+                <td><span style="font-weight: 600;">{{ s.product_packing.packing_name }}</span></td>
+                <td style="font-weight: 700; color: #4f46e5;">{{ s.packing_count }} units</td>
+                <td>{{ s.base_quantity|floatformat:1 }} L</td>
+                <td style="color: #64748b;">₹{{ s.margin }}</td>
+                <td style="color: #16a34a; font-weight: 700; font-size: 0.95rem;">₹{{ s.profit|floatformat:2 }}</td>
+                <td>{{ s.staff.get_full_name|default:s.staff.username|default:"System" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 24px;">No sales history found for selected criteria.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

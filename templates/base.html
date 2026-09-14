@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,12 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         :root {
-            --bg-sidebar: #1e293b; /* Dark Slate */
-            --bg-body: #f8fafc; /* Light gray */
-            --bg-banner: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); /* Premium Indigo/Violet gradient */
+            --bg-sidebar: #1e293b;
+            /* Dark Slate */
+            --bg-body: #f8fafc;
+            /* Light gray */
+            --bg-banner: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            /* Premium Indigo/Violet gradient */
             --text-sidebar: #cbd5e1;
             --text-sidebar-hover: #ffffff;
             --sidebar-border: #334155;
@@ -47,8 +51,14 @@
             z-index: 100;
         }
 
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background-color: var(--sidebar-border); border-radius: 4px; }
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--sidebar-border);
+            border-radius: 4px;
+        }
 
         .sidebar-header {
             padding: 16px;
@@ -93,7 +103,8 @@
             transition: color 0.2s, background-color 0.2s;
         }
 
-        .nav-item:hover, .nav-item.active {
+        .nav-item:hover,
+        .nav-item.active {
             color: var(--text-sidebar-hover);
             background-color: rgba(255, 255, 255, 0.08);
         }
@@ -122,13 +133,13 @@
             font-size: 0.8rem;
             transition: transform 0.2s;
         }
-        
+
         .nav-item.open .nav-right-icon {
             transform: rotate(90deg);
         }
 
         .nav-submenu {
-            background-color: rgba(0,0,0,0.15);
+            background-color: rgba(0, 0, 0, 0.15);
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
@@ -148,7 +159,8 @@
             transition: color 0.2s;
         }
 
-        .nav-submenu a:hover, .nav-submenu a.active {
+        .nav-submenu a:hover,
+        .nav-submenu a.active {
             color: white;
             font-weight: 500;
         }
@@ -192,12 +204,12 @@
             align-items: center;
             gap: 16px;
         }
-        
+
         .navbar-right .user-chip {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -205,7 +217,7 @@
         }
 
         .navbar-right a.logout-btn {
-            color: rgba(255,255,255,0.9);
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             padding: 6px 12px;
             border-radius: 6px;
@@ -270,7 +282,7 @@
 
         .kpi-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 12px -2px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.08);
         }
 
         .kpi-card .kpi-header {
@@ -451,10 +463,25 @@
             text-transform: uppercase;
         }
 
-        .badge-active { background: #dcfce7; color: #15803d; }
-        .badge-inactive { background: #fee2e2; color: #b91c1c; }
-        .badge-admin { background: #e0e7ff; color: #4338ca; }
-        .badge-staff { background: #fef3c7; color: #b45309; }
+        .badge-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-admin {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .badge-staff {
+            background: #fef3c7;
+            color: #b45309;
+        }
 
         /* Premium Form Layout */
         .premium-form-container {
@@ -551,7 +578,8 @@
             color: #64748b;
         }
 
-        .filter-item input, .filter-item select {
+        .filter-item input,
+        .filter-item select {
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
@@ -559,6 +587,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Sidebar Navigation -->
@@ -568,8 +597,9 @@
             <span>PARISHUDAM P&L</span>
         </div>
         <div class="sidebar-content">
-            
-            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+
+            <a href="{% url 'dashboard' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <div class="nav-item-left">
                     <i class="ph ph-squares-four"></i>
                     Dashboard
@@ -577,7 +607,7 @@
             </a>
 
             {% if request.user.profile.is_admin %}
-            
+
             <div class="nav-section-title">ADMINISTRATIVE MASTERS</div>
 
             <!-- Masters Dropdown -->
@@ -601,6 +631,20 @@
 
             </div>
 
+            <div class="nav-section-title">OPERATIONS</div>
+
+            <div class="nav-item dropdown-toggle">
+                <div class="nav-item-left">
+                    <i class="ph ph-currency-inr"></i>
+                    Operations
+                </div>
+                <i class="ph-bold ph-caret-right nav-right-icon"></i>
+            </div>
+            <div class="nav-submenu">
+                <a href="{% url 'sales_entry' %}">Record Daily Sales</a>
+                <a href="{% url 'sales_list' %}">Sales History</a>
+            </div>
+
             {% endif %}
 
         </div>
@@ -608,13 +652,14 @@
 
     <!-- Main Wrapper -->
     <div class="main-wrapper">
-        
+
         <!-- Top Banner Header -->
         <div class="top-banner">
             <div class="top-navbar">
                 <div class="navbar-left">
                     <i class="ph-bold ph-buildings"></i>
-                    <span>{% if request.user.profile.branch %}{{ request.user.profile.branch.name }} Branch{% else %}Head Office (All Branches){% endif %}</span>
+                    <span>{% if request.user.profile.branch %}{{ request.user.profile.branch.name }} Branch{% else
+                        %}Head Office (All Branches){% endif %}</span>
                 </div>
                 <div class="navbar-right">
                     <div class="user-chip">
@@ -630,7 +675,8 @@
             <div class="banner-header">
                 <div>
                     <h1 class="banner-title">{% block page_title %}Dashboard{% endblock %}</h1>
-                    <p class="banner-subtitle">{% block page_subtitle %}Parishudam Coconut Oil Profit & Loss Management{% endblock %}</p>
+                    <p class="banner-subtitle">{% block page_subtitle %}Parishudam Coconut Oil Profit & Loss
+                        Management{% endblock %}</p>
                 </div>
                 <div>
                     {% block header_actions %}{% endblock %}
@@ -641,16 +687,16 @@
         <!-- Content Area -->
         <main class="content-area">
             {% if messages %}
-                <div style="margin-bottom: 20px;">
-                    {% for message in messages %}
-                        <div style="padding: 12px 18px; border-radius: 8px; font-weight: 500; margin-bottom: 10px; 
+            <div style="margin-bottom: 20px;">
+                {% for message in messages %}
+                <div style="padding: 12px 18px; border-radius: 8px; font-weight: 500; margin-bottom: 10px; 
                              {% if message.tags == 'success' %}background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
                              {% elif message.tags == 'error' %}background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;
                              {% else %}background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
+                    {{ message }}
                 </div>
+                {% endfor %}
+            </div>
             {% endif %}
 
             {% block content %}{% endblock %}
@@ -664,11 +710,11 @@
             item.addEventListener('click', () => {
                 const submenu = item.nextElementSibling;
                 const isOpen = submenu.classList.contains('open');
-                
+
                 // Close open submenus
                 document.querySelectorAll('.nav-submenu').forEach(sm => sm.classList.remove('open'));
                 document.querySelectorAll('.dropdown-toggle').forEach(dt => dt.classList.remove('open'));
-                
+
                 if (!isOpen) {
                     submenu.classList.add('open');
                     item.classList.add('open');
@@ -692,4 +738,5 @@
     </script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

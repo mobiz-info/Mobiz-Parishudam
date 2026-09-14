@@ -12,7 +12,10 @@ from core.views import (
     margin_list_view, margin_create_view,  margin_edit_view, margin_delete_view,
     packing_unit_list_view, packing_unit_create_view, packing_unit_edit_view, packing_unit_delete_view,
 )
-   
+from operations.views import (
+    sales_entry_view, sales_list_view,
+    expense_create_view, expense_list_view,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -64,6 +67,12 @@ urlpatterns = [
     path('margins/create/', margin_create_view, name='margin_create'),
     path('margins/<int:pk>/edit/', margin_edit_view, name='margin_edit'),
     path('margins/<int:pk>/delete/', margin_delete_view, name='margin_delete'),
+
+    # Operations: Sales & Expenses
+    path('sales/entry/', sales_entry_view, name='sales_entry'),
+    path('sales/', sales_list_view, name='sales_list'),
+    path('expenses/create/', expense_create_view, name='expense_create'),
+    path('expenses/', expense_list_view, name='expense_list'),
 
     # API
     path('api/', include('api.urls')),
