@@ -10,7 +10,8 @@ from django.db.models import ProtectedError
 import json
 from django.http import JsonResponse
 from .models import Branch, StaffProfile, Product, ProductPackingSize, Unit, ProductMargin
-from .models import ExpenseHead,PackingUnit
+from .models import ExpenseHead,PackingUnit,Vehicle
+from operations.models import Expense
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -698,3 +699,242 @@ def margin_delete_view(request, pk):
 
     messages.success(request, "Margin deleted successfully.")
     return redirect('margin_list')
+
+@login_required
+def vehicle_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicles = Vehicle.objects.select_related('branch').all()
+    return render(request, 'vehicles/vehicle_list.html', {'vehicles': vehicles})
+
+
+@login_required
+def vehicle_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    branches = Branch.objects.all()
+
+    if request.method == 'POST':
+        vehicle_number = request.POST.get('vehicle_number', '').strip()
+        vehicle_type = request.POST.get('vehicle_type', '').strip()
+        branch_id = request.POST.get('branch')
+        driver_name = request.POST.get('driver_name', '').strip()
+        driver_phone = request.POST.get('driver_phone', '').strip()
+
+        if not all([vehicle_number, vehicle_type, branch_id, driver_name, driver_phone]):
+            messages.error(request, "All fields are required.")
+        elif Vehicle.objects.filter(vehicle_number__iexact=vehicle_number).exists():
+            messages.error(request, "This vehicle number already exists.")
+        else:
+            Vehicle.objects.create(
+                vehicle_number=vehicle_number,
+                vehicle_type=vehicle_type,
+                branch_id=branch_id,
+                driver_name=driver_name,
+                driver_phone=driver_phone
+            )
+            messages.success(request, "Vehicle created successfully.")
+            return redirect('vehicle_list')
+
+    return render(request, 'vehicles/vehicle_form.html', {
+        'title': 'Add New Vehicle',
+        'branches': branches
+    })
+
+@login_required
+def vehicle_edit_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    branches = Branch.objects.all()
+
+    if request.method == 'POST':
+        vehicle_number = request.POST.get('vehicle_number', '').strip()
+        vehicle_type = request.POST.get('vehicle_type', '').strip()
+        branch_id = request.POST.get('branch')
+        driver_name = request.POST.get('driver_name', '').strip()
+        driver_phone = request.POST.get('driver_phone', '').strip()
+
+        if not all([vehicle_number, vehicle_type, branch_id, driver_name, driver_phone]):
+            messages.error(request, "All fields are required.")
+        elif Vehicle.objects.filter(
+            vehicle_number__iexact=vehicle_number
+        ).exclude(pk=pk).exists():
+            messages.error(request, "This vehicle number already exists.")
+        else:
+            vehicle.vehicle_number = vehicle_number
+            vehicle.vehicle_type = vehicle_type
+            vehicle.branch_id = branch_id
+            vehicle.driver_name = driver_name
+            vehicle.driver_phone = driver_phone
+            vehicle.save()
+
+            messages.success(request, "Vehicle updated successfully.")
+            return redirect('vehicle_list')
+
+    return render(request, 'vehicles/vehicle_form.html', {
+        'title': 'Edit Vehicle',
+        'vehicle': vehicle,
+        'branches': branches
+    })
+
+
+@login_required
+def vehicle_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    vehicle.delete()
+
+    messages.success(request, "Vehicle deleted successfully.")
+    return redirect('vehicle_list')
+
+
+# --- EXPENSE LIST ---
+
+@login_required
+def expense_list_view(request):
+    from operations.models import Expense
+
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    expenses = Expense.objects.select_related(
+        'branch',
+        'expense_head',
+        'staff'
+    ).all().order_by('-expense_date', '-id')
+
+    if not is_admin and user_profile and user_profile.branch:
+        expenses = expenses.filter(branch=user_profile.branch)
+    else:
+        branch_id = request.GET.get('branch_id')
+        if branch_id:
+            expenses = expenses.filter(branch_id=branch_id)
+
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+
+    if date_from:
+        expenses = expenses.filter(expense_date__gte=date_from)
+
+    if date_to:
+        expenses = expenses.filter(expense_date__lte=date_to)
+
+    branches = Branch.objects.filter(status='active')
+
+    return render(request, 'operations/expense_list.html', {
+        'expenses': expenses,
+        'branches': branches,
+        'is_admin': is_admin,
+        'date_from': date_from or '',
+        'date_to': date_to or '',
+    })
+
+@login_required
+def expense_entry_view(request):
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch')
+        expense_date = request.POST.get('expense_date')
+        expense_head_id = request.POST.get('expense_head')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description', '').strip()
+
+        if not all([branch_id, expense_date, expense_head_id, amount]):
+            messages.error(request, "Please fill all required fields.")
+        else:
+            Expense.objects.create(
+                branch_id=branch_id,
+                staff=request.user,
+                expense_date=expense_date,
+                expense_head_id=expense_head_id,
+                amount=amount,
+                description=description,
+                created_by=request.user,
+                updated_by=request.user
+            )
+            messages.success(request, "Expense added successfully.")
+            return redirect('expense_list')
+
+    return render(request, 'operations/expense_form.html', {
+        'branches': branches,
+        'expense_heads': expense_heads,
+        'is_admin': is_admin,
+        'title': 'Add Expense',
+    })
+
+@login_required
+def expense_edit_view(request, pk):
+    from operations.models import Expense
+
+    expense = get_object_or_404(Expense, pk=pk)
+
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    if not is_admin and user_profile and expense.branch != user_profile.branch:
+        messages.error(request, "Permission denied.")
+        return redirect('expense_list')
+
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch')
+        expense_date = request.POST.get('expense_date')
+        expense_head_id = request.POST.get('expense_head')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description', '').strip()
+
+        if not all([branch_id, expense_date, expense_head_id, amount]):
+            messages.error(request, "Please fill all required fields.")
+        else:
+            expense.branch_id = branch_id
+            expense.expense_date = expense_date
+            expense.expense_head_id = expense_head_id
+            expense.amount = amount
+            expense.description = description
+            expense.updated_by = request.user
+            expense.save()
+
+            messages.success(request, "Expense updated successfully.")
+            return redirect('expense_list')
+
+    return render(request, 'operations/expense_form.html', {
+        'expense': expense,
+        'branches': branches,
+        'expense_heads': expense_heads,
+        'is_admin': is_admin,
+        'title': 'Edit Expense',
+    })
+
+@login_required
+def expense_delete_view(request, pk):
+    from operations.models import Expense
+
+    expense = get_object_or_404(Expense, pk=pk)
+
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    if not is_admin and user_profile and expense.branch != user_profile.branch:
+        messages.error(request, "Permission denied.")
+        return redirect('expense_list')
+
+    expense.delete()
+    messages.success(request, "Expense deleted successfully.")
+    return redirect('expense_list')

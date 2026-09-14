@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_subtitle %}Add branch expense details{% endblock %}
+
+{% block content %}
+
+<div class="premium-form-container">
+
+    <div class="premium-form-title">{{ title }}</div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Branch *</label>
+            <select name="branch" required>
+                <option value="">Select Branch</option>
+                {% for branch in branches %}
+                <option value="{{ branch.id }}">{{ branch.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Date *</label>
+            <input type="date" name="expense_date" required>
+        </div>
+
+        <div class="form-group">
+            <label>Expense Head *</label>
+            <select name="expense_head" required>
+                <option value="">Select Expense Head</option>
+                {% for head in expense_heads %}
+                <option value="{{ head.id }}">{{ head.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Amount *</label>
+            <input type="number" name="amount" step="0.01" min="0" placeholder="Enter amount" required>
+        </div>
+
+        <div class="form-group">
+            <label>Remarks</label>
+            <textarea name="description" rows="4" placeholder="Enter remarks"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'expense_list' %}" class="btn-secondary">Cancel</a>
+
+            <button type="submit" class="btn-primary">
+                Save Expense
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

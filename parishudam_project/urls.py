@@ -11,7 +11,9 @@ from core.views import (
     expense_head_list_view, expense_head_create_view, expense_head_delete_view,
     margin_list_view, margin_create_view,  margin_edit_view, margin_delete_view,
     packing_unit_list_view, packing_unit_create_view, packing_unit_edit_view, packing_unit_delete_view,
-)
+    vehicle_list_view, vehicle_create_view, vehicle_edit_view, vehicle_delete_view, 
+    expense_list_view, expense_entry_view ,expense_edit_view, expense_delete_view
+)   
 from operations.views import (
     sales_entry_view, sales_list_view,
     
@@ -71,6 +73,17 @@ urlpatterns = [
     # Operations: Sales & Expenses
     path('sales/entry/', sales_entry_view, name='sales_entry'),
     path('sales/', sales_list_view, name='sales_list'),
+
+    #vehicles
+    path('vehicles/', vehicle_list_view, name='vehicle_list'),
+    path('vehicles/create/', vehicle_create_view, name='vehicle_create'),
+    path('vehicles/<int:pk>/edit/', vehicle_edit_view, name='vehicle_edit'),
+    path('vehicles/<int:pk>/delete/', vehicle_delete_view, name='vehicle_delete'),
+
+    path('expenses/', expense_list_view, name='expense_list'),
+    path('expenses/add/', expense_entry_view, name='expense_entry'),
+    path('expenses/<int:pk>/edit/', expense_edit_view, name='expense_edit'),
+    path('expenses/<int:pk>/delete/', expense_delete_view, name='expense_delete'),
 
     # API
     path('api/', include('api.urls')),

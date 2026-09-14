@@ -169,7 +169,47 @@ def sales_list_view(request):
         'is_admin': is_admin
     })
 
+@login_required
+def expense_edit_view(request, pk):
+    from operations.models import Expense
 
+    expense = get_object_or_404(Expense, pk=pk)
 
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
 
+    if not is_admin and user_profile and expense.branch != user_profile.branch:
+        messages.error(request, "Permission denied.")
+        return redirect('expense_list')
 
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch')
+        expense_date = request.POST.get('expense_date')
+        expense_head_id = request.POST.get('expense_head')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description', '').strip()
+
+        if not all([branch_id, expense_date, expense_head_id, amount]):
+            messages.error(request, "Please fill all required fields.")
+        else:
+            expense.branch_id = branch_id
+            expense.expense_date = expense_date
+            expense.expense_head_id = expense_head_id
+            expense.amount = amount
+            expense.description = description
+            expense.updated_by = request.user
+            expense.save()
+
+            messages.success(request, "Expense updated successfully.")
+            return redirect('expense_list')
+
+    return render(request, 'operations/expense_form.html', {
+        'expense': expense,
+        'branches': branches,
+        'expense_heads': expense_heads,
+        'is_admin': is_admin,
+        'title': 'Edit Expense',
+    })

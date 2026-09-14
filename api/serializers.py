@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin
+from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin,Vehicle
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -110,3 +110,21 @@ class ProductMarginSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("Margin amount cannot be negative.")
         return value
+
+class VehicleSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+
+    class Meta:
+        model = Vehicle
+        fields = [
+            'id',
+            'vehicle_number',
+            'vehicle_type',
+            'branch',
+            'branch_name',
+            'driver_name',
+            'driver_phone',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['id', 'branch_name', 'created_at', 'updated_at']

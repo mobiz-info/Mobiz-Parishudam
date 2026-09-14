@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Vehicles{% endblock %}
+{% block page_title %}Vehicles{% endblock %}
+{% block page_subtitle %}Manage branch vehicles and driver details{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'vehicle_create' %}" class="btn-success">
+    <i class="ph-bold ph-plus"></i> Add Vehicle
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">All Vehicles</h3>
+    </div>
+
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Vehicle Number</th>
+                <th>Vehicle Type</th>
+                <th>Branch</th>
+                <th>Driver Name</th>
+                <th>Driver Phone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for vehicle in vehicles %}
+            <tr>
+                <td style="font-weight: 600; color: #0f172a;">
+                    {{ vehicle.vehicle_number }}
+                </td>
+
+                <td>{{ vehicle.vehicle_type }}</td>
+
+                <td>{{ vehicle.branch.name }}</td>
+
+                <td>{{ vehicle.driver_name }}</td>
+
+                <td>{{ vehicle.driver_phone }}</td>
+
+                <td>
+                    <div style="display: flex; gap: 8px;">
+
+                        <a href="{% url 'vehicle_edit' vehicle.id %}"
+                           class="btn-secondary"
+                           style="padding: 4px 10px; font-size: 0.75rem;">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+
+                        <a href="{% url 'vehicle_delete' vehicle.id %}"
+                           class="btn-secondary"
+                           style="padding: 4px 10px; font-size: 0.75rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;"
+                           onclick="return confirm('Are you sure you want to delete this vehicle?');">
+                            <i class="ph ph-trash"></i> Delete
+                        </a>
+
+                    </div>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 24px;">
+                    No vehicles found. Click "Add Vehicle" to create one.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
