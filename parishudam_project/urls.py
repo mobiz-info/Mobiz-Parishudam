@@ -14,7 +14,7 @@ from core.views import (
 )
 from operations.views import (
     sales_entry_view, sales_list_view,
-    expense_create_view, expense_list_view,
+    
 )
 
 urlpatterns = [
@@ -71,8 +71,6 @@ urlpatterns = [
     # Operations: Sales & Expenses
     path('sales/entry/', sales_entry_view, name='sales_entry'),
     path('sales/', sales_list_view, name='sales_list'),
-    path('expenses/create/', expense_create_view, name='expense_create'),
-    path('expenses/', expense_list_view, name='expense_list'),
 
     # API
     path('api/', include('api.urls')),
