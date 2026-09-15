@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Profit & Loss Report{% endblock %}
+{% block page_title %}Daily Profit & Loss Report{% endblock %}
+{% block page_subtitle %}Date-wise gross sales profit, itemized branch expenses, and net profit calculation{% endblock %}
+
+{% block content %}
+
+<!-- Filter Toolbar -->
+<div class="filter-toolbar">
+    <form method="GET" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%;">
+        <div class="filter-item">
+            <label><i class="ph ph-calendar"></i> Date:</label>
+            <input type="date" name="date" value="{{ report_date|date:'Y-m-d' }}" onchange="this.form.submit()">
+        </div>
+
+        {% if is_admin %}
+        <div class="filter-item">
+            <label><i class="ph ph-buildings"></i> Branch:</label>
+            <select name="branch_id" onchange="this.form.submit()">
+                {% for b in branches %}
+                {% if selected_branch and selected_branch.id == b.id %}
+                <option value="{{ b.id }}" selected>{{ b.name }}</option>
+                {% else %}
+                <option value="{{ b.id }}">{{ b.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Summary Statement Card -->
+<div
+    style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">
+            DAILY STATEMENT — {{ selected_branch.name|default:"All Branches" }}
+        </h2>
+        <span
+            style="background: #e0e7ff; color: #4338ca; padding: 4px 12px; border-radius: 16px; font-weight: 600; font-size: 0.85rem;">
+            Date: {{ report_date|date:"d F Y" }}
+        </span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+
+        <!-- Left: Sales Profit Breakdown -->
+        <div>
+            <h4
+                style="font-size: 0.95rem; font-weight: 700; color: #16a34a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                <i class="ph-bold ph-trend-up"></i> Sales Profit Breakdown
+            </h4>
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Packing Size</th>
+                        <th>Qty Sold</th>
+                        <th>Actual Margin</th>
+                        <th>Profit (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sales_detail %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ s.product_packing.packing_name }}</td>
+                        <td>{{ s.packing_count }}</td>
+                        <td>₹{{ s.margin }}</td>
+                        <td style="color: #16a34a; font-weight: 700;">₹{{ s.profit|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="color: #94a3b8; text-align: center; padding: 12px;">No sales recorded on
+                            this date.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8fafc; font-weight: 700;">
+                        <td colspan="3">GROSS SALES PROFIT</td>
+                        <td style="color: #16a34a; font-size: 1.05rem;">₹{{ gross_profit|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Right: Expense Breakdown -->
+        <div>
+            <h4
+                style="font-size: 0.95rem; font-weight: 700; color: #dc2626; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                <i class="ph-bold ph-receipt"></i> Expenses Breakdown
+            </h4>
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Expense Head</th>
+                        <th>Description</th>
+                        <th>Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in expenses_detail %}
+                    <tr>
+                        <td style="font-weight: 600; color: #b91c1c;">{{ e.expense_head.name }}</td>
+                        <td>{{ e.description|default:"--" }}</td>
+                        <td style="color: #dc2626; font-weight: 700;">₹{{ e.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="color: #94a3b8; text-align: center; padding: 12px;">No expenses logged on
+                            this date.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8fafc; font-weight: 700;">
+                        <td colspan="2">TOTAL EXPENSES</td>
+                        <td style="color: #dc2626; font-size: 1.05rem;">₹{{ total_expense|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- Net Profit Highlight Box -->
+    <div
+        style="margin-top: 32px; background: {% if net_profit >= 0 %}#f0fdf4{% else %}#fef2f2{% endif %}; border: 2px solid {% if net_profit >= 0 %}#bbf7d0{% else %}#fecaca{% endif %}; border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span
+                style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: {% if net_profit >= 0 %}#15803d{% else %}#b91c1c{% endif %};">
+                FINAL NET PROFIT FOR {{ report_date|date:"d M Y" }}
+            </span>
+
+        </div>
+        <div
+            style="font-size: 2.2rem; font-weight: 800; color: {% if net_profit >= 0 %}#15803d{% else %}#b91c1c{% endif %};">
+            ₹{{ net_profit|floatformat:2 }}
+        </div>
+    </div>
+</div>
+{% endblock %}
