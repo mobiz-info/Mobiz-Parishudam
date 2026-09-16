@@ -10,56 +10,341 @@
 
 <div class="premium-form-container">
 
-    <div class="premium-form-title">{{ title }}</div>
+<div class="premium-form-title">{{ title }}</div>
 
-    <form method="POST">
-        {% csrf_token %}
+<form method="POST">
+    {% csrf_token %}
+
+    <!-- Branch -->
+    <div class="form-group">
+        <label>Branch *</label>
+
+        <select name="branch" id="branch" required>
+            <option value="" disabled selected>Select Branch</option>
+
+            {% for branch in branches %}
+            <option value="{{ branch.id }}"
+                {% if expense and expense.branch_id == branch.id %}
+                    selected
+                {% endif %}>
+                {{ branch.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+
+    <!-- Date -->
+    <div class="form-group">
+        <label>Date *</label>
+
+        <input type="date"
+               name="expense_date"
+               value="{% if expense %}{{ expense.expense_date|date:'Y-m-d' }}{% endif %}"
+               required>
+    </div>
+
+
+    <!-- Expense Head -->
+    <div class="form-group">
+        <label>Expense Head *</label>
+
+        <select name="expense_head"
+                id="expense_head"
+                required>
+
+            <option value="" disabled selected>Select Expense Head</option>
+
+            {% for head in expense_heads %}
+
+            <option value="{{ head.id }}"
+                {% if expense and expense.expense_head_id == head.id %}
+                    selected
+                {% endif %}>
+                {{ head.name }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+    </div>
+
+
+    <!-- Vehicle Section -->
+    <div id="vehicle-section"
+         style="display: none;">
 
         <div class="form-group">
-            <label>Branch *</label>
-            <select name="branch" required>
-                <option value="">Select Branch</option>
-                {% for branch in branches %}
-                <option value="{{ branch.id }}">{{ branch.name }}</option>
+            <label>Vehicle *</label>
+
+            <select name="vehicle"
+                    id="vehicle">
+
+                <option value="" disabled selected>
+                    Select Vehicle
+                </option>
+
+                {% for vehicle in vehicles %}
+
+                <option value="{{ vehicle.id }}"
+                        data-branch="{{ vehicle.branch_id }}"
+                        data-number="{{ vehicle.vehicle_number }}"
+                        data-type="{{ vehicle.vehicle_type }}"
+                        data-branch-name="{{ vehicle.branch.name }}"
+                        data-driver="{{ vehicle.driver_name }}"
+                        data-phone="{{ vehicle.driver_phone }}"
+                        {% if expense and expense.vehicle_id == vehicle.id %}
+                            selected
+                        {% endif %}>
+                    {{ vehicle.vehicle_number }}
+                </option>
+
                 {% endfor %}
+
             </select>
         </div>
 
-        <div class="form-group">
-            <label>Date *</label>
-            <input type="date" name="expense_date" required>
+
+        <!-- Vehicle Details -->
+        <div id="vehicle-details"
+             style="display: none;
+                    margin: 15px 0;
+                    padding: 16px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    background: #f8fafc;">
+
+            <h4 style="margin-bottom: 14px;
+                       color: #0f172a;
+                       font-size: 0.95rem;
+                       font-weight: 600;">
+                Vehicle Details
+            </h4>
+
+            <div style="display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 12px;">
+
+                <div>
+                    <strong>Vehicle Number</strong>
+                    <div id="vehicle-number">-</div>
+                </div>
+
+                <div>
+                    <strong>Vehicle Type</strong>
+                    <div id="vehicle-type">-</div>
+                </div>
+
+                <div>
+                    <strong>Branch</strong>
+                    <div id="vehicle-branch">-</div>
+                </div>
+
+                <div>
+                    <strong>Driver Name</strong>
+                    <div id="vehicle-driver">-</div>
+                </div>
+
+                <div>
+                    <strong>Driver Phone</strong>
+                    <div id="vehicle-phone">-</div>
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="form-group">
-            <label>Expense Head *</label>
-            <select name="expense_head" required>
-                <option value="">Select Expense Head</option>
-                {% for head in expense_heads %}
-                <option value="{{ head.id }}">{{ head.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    </div>
 
-        <div class="form-group">
-            <label>Amount *</label>
-            <input type="number" name="amount" step="0.01" min="0" placeholder="Enter amount" required>
-        </div>
 
-        <div class="form-group">
-            <label>Remarks</label>
-            <textarea name="description" rows="4" placeholder="Enter remarks"></textarea>
-        </div>
+    <!-- Amount -->
+    <div class="form-group">
+        <label>Amount *</label>
 
-        <div class="form-actions">
-            <a href="{% url 'expense_list' %}" class="btn-secondary">Cancel</a>
+        <input type="number"
+               name="amount"
+               step="0.01"
+               min="0"
+               value="{% if expense %}{{ expense.amount }}{% endif %}"
+               placeholder="Enter amount"
+               required>
+    </div>
 
-            <button type="submit" class="btn-primary">
-                Save Expense
-            </button>
-        </div>
 
-    </form>
+    <!-- Remarks -->
+    <div class="form-group">
+        <label>Remarks</label>
+
+        <textarea name="description"
+                  rows="4"
+                  placeholder="Enter remarks">{% if expense %}{{ expense.description }}{% endif %}</textarea>
+    </div>
+
+
+    <!-- Actions -->
+    <div class="form-actions">
+
+        <a href="{% url 'expense_list' %}"
+           class="btn-secondary">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="btn-success">
+            Save Expense
+        </button>
+
+    </div>
+
+</form>
+
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const branchSelect = document.getElementById("branch");
+    const expenseHeadSelect = document.getElementById("expense_head");
+    const vehicleSection = document.getElementById("vehicle-section");
+    const vehicleSelect = document.getElementById("vehicle");
+    const vehicleDetails = document.getElementById("vehicle-details");
+
+    function filterVehicles() {
+
+        const selectedBranch = branchSelect.value;
+        let selectedVehicle = vehicleSelect.value;
+
+        let selectedVehicleStillAvailable = false;
+
+        Array.from(vehicleSelect.options).forEach(function (option, index) {
+
+            if (index === 0) {
+                option.style.display = "";
+                return;
+            }
+
+            const vehicleBranch = option.dataset.branch;
+
+            if (!selectedBranch || vehicleBranch === selectedBranch) {
+                option.style.display = "";
+
+                if (option.value === selectedVehicle) {
+                    selectedVehicleStillAvailable = true;
+                }
+
+            } else {
+                option.style.display = "none";
+
+                if (option.value === selectedVehicle) {
+                    selectedVehicle = "";
+                }
+            }
+        });
+
+        if (!selectedVehicleStillAvailable) {
+            vehicleSelect.value = "";
+        }
+
+        showVehicleDetails();
+    }
+
+
+    function checkExpenseHead() {
+
+        const selectedOption =
+            expenseHeadSelect.options[
+                expenseHeadSelect.selectedIndex
+            ];
+
+        if (!selectedOption || !selectedOption.value) {
+
+            vehicleSection.style.display = "none";
+            vehicleSelect.value = "";
+            vehicleDetails.style.display = "none";
+
+            return;
+        }
+
+        const expenseHeadName =
+            selectedOption.text.trim().toLowerCase();
+
+        if (expenseHeadName === "vehicle expense") {
+
+            vehicleSection.style.display = "block";
+
+            filterVehicles();
+
+        } else {
+
+            vehicleSection.style.display = "none";
+            vehicleSelect.value = "";
+            vehicleDetails.style.display = "none";
+
+        }
+    }
+
+
+    function showVehicleDetails() {
+
+        const selectedOption =
+            vehicleSelect.options[
+                vehicleSelect.selectedIndex
+            ];
+
+        if (!selectedOption || !selectedOption.value) {
+
+            vehicleDetails.style.display = "none";
+            return;
+        }
+
+        document.getElementById("vehicle-number").textContent =
+            selectedOption.dataset.number || "-";
+
+        document.getElementById("vehicle-type").textContent =
+            selectedOption.dataset.type || "-";
+
+        document.getElementById("vehicle-branch").textContent =
+            selectedOption.dataset.branchName || "-";
+
+        document.getElementById("vehicle-driver").textContent =
+            selectedOption.dataset.driver || "-";
+
+        document.getElementById("vehicle-phone").textContent =
+            selectedOption.dataset.phone || "-";
+
+        vehicleDetails.style.display = "block";
+    }
+
+
+    expenseHeadSelect.addEventListener(
+        "change",
+        checkExpenseHead
+    );
+
+    vehicleSelect.addEventListener(
+        "change",
+        showVehicleDetails
+    );
+
+    branchSelect.addEventListener(
+        "change",
+        function () {
+
+            if (
+                vehicleSection.style.display !== "none"
+            ) {
+                filterVehicles();
+            }
+
+        }
+    );
+
+
+    // Initial state
+    checkExpenseHead();
+
+});
+</script>
 
 {% endblock %}

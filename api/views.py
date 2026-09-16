@@ -3,13 +3,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-
-from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin,Vehicle
-
+from operations.models import Expense
+from rest_framework.decorators import action
+from django.http import HttpResponse
+from openpyxl import Workbook
+from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin
+from operations.models import Vehicle
 
 from api.serializers import (
     UserSerializer, StaffProfileSerializer, BranchSerializer,ProductSerializer,
-    ProductPackingSizeSerializer,ProductMarginSerializer,VehicleSerializer
+    ProductPackingSizeSerializer,ProductMarginSerializer,VehicleSerializer,ExpenseSerializer,
+
 )
 
 class LoginAPIView(APIView):
@@ -71,11 +75,6 @@ class ProductPackingSizeViewSet(viewsets.ModelViewSet):
 class ProductMarginViewSet(viewsets.ModelViewSet):
     queryset = ProductMargin.objects.select_related('product', 'packing_size').all()
     serializer_class = ProductMarginSerializer
-
-class VehicleViewSet(viewsets.ModelViewSet):
-    queryset = Vehicle.objects.select_related('branch').all()
-    serializer_class = VehicleSerializer
-
 class VehicleViewSet(viewsets.ModelViewSet):
     queryset = Vehicle.objects.select_related('branch').all()
     serializer_class = VehicleSerializer
@@ -88,3 +87,53 @@ class VehicleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(branch_id=branch_id)
 
         return queryset
+
+
+class ExpenseViewSet(viewsets.ModelViewSet):
+    queryset = Expense.objects.select_related(
+        'branch',
+        'staff',
+        'expense_head'
+    ).all()
+    serializer_class = ExpenseSerializer
+
+    @action(detail=False, methods=['get'], url_path='export')
+    def export_excel(self, request):
+        expenses = self.get_queryset()
+
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Expenses"
+
+        headers = [
+            "ID",
+            "Branch",
+            "Staff",
+            "Expense Date",
+            "Expense Head",
+            "Amount",
+            "Description",
+        ]
+
+        worksheet.append(headers)
+
+        for expense in expenses:
+            worksheet.append([
+                expense.id,
+                expense.branch.name,
+                expense.staff.username if expense.staff else "",
+                expense.expense_date,
+                expense.expense_head.name,
+                float(expense.amount),
+                expense.description,
+            ])
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        response["Content-Disposition"] = 'attachment; filename="expenses.xlsx"'
+
+        workbook.save(response)
+
+        return response

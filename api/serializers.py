@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin,Vehicle
+from core.models import Branch, StaffProfile, Product, ProductPackingSize,ProductMargin
+from operations.models import Expense,Vehicle
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -128,3 +129,43 @@ class VehicleSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
         read_only_fields = ['id', 'branch_name', 'created_at', 'updated_at']
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+    expense_head_name = serializers.CharField(source='expense_head.name', read_only=True)
+    staff_name = serializers.CharField(source='staff.username', read_only=True)
+
+    class Meta:
+        model = Expense
+        fields = [
+            'id',
+            'branch',
+            'branch_name',
+            'staff',
+            'staff_name',
+            'expense_date',
+            'expense_head',
+            'expense_head_name',
+            'amount',
+            'description',
+            'created_by',
+            'updated_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'branch_name',
+            'staff_name',
+            'created_by',
+            'updated_by',
+            'created_at',
+            'updated_at',
+        ]
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Amount must be greater than 0."
+            )
+        return value

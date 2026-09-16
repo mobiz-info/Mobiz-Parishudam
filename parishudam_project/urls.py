@@ -8,14 +8,15 @@ from core.views import (
     product_list_view, product_create_view, product_edit_view, product_delete_view,
     product_packing_size_list_view, product_packing_size_create_view, product_packing_size_edit_view, product_packing_size_delete_view,
     unit_list_view, unit_create_view, unit_delete_view,
-    expense_head_list_view, expense_head_create_view, expense_head_delete_view,
     margin_list_view, margin_create_view,  margin_edit_view, margin_delete_view,
     packing_unit_list_view, packing_unit_create_view, packing_unit_edit_view, packing_unit_delete_view,
-    vehicle_list_view, vehicle_create_view, vehicle_edit_view, vehicle_delete_view, 
-    expense_list_view, expense_entry_view ,expense_edit_view, expense_delete_view
 )   
 from operations.views import (
     sales_entry_view, sales_list_view,
+    expense_head_list_view, expense_head_create_view, expense_head_delete_view,
+    vehicle_list_view, vehicle_create_view, vehicle_edit_view, vehicle_delete_view, 
+    expense_list_view, expense_entry_view ,expense_edit_view, expense_delete_view, expense_vehicle_details_view,expense_export_excel_view,
+    
     
 )
 
@@ -84,6 +85,8 @@ urlpatterns = [
     path('expenses/add/', expense_entry_view, name='expense_entry'),
     path('expenses/<int:pk>/edit/', expense_edit_view, name='expense_edit'),
     path('expenses/<int:pk>/delete/', expense_delete_view, name='expense_delete'),
+    path('expense/vehicle-details/',expense_vehicle_details_view,name='expense_vehicle_details'),
+path('expenses/export-excel/', expense_export_excel_view,name='expense_export_excel'),
 
     # API
     path('api/', include('api.urls')),

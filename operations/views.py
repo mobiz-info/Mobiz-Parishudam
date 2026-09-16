@@ -3,10 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
+from django.db.models import Sum
 from decimal import Decimal
-
-from core.models import Branch, StaffProfile, Product, ProductPackingSize, ProductMargin, ExpenseHead
-from operations.models import DailySale, Expense
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
+from core.models import Branch, StaffProfile, Product, ProductPackingSize, ProductMargin 
+from operations.models import DailySale, Expense, ExpenseHead,Vehicle
 
 
 # --- DAILY SALES MATRIX ENTRY ---
@@ -170,6 +174,49 @@ def sales_list_view(request):
     })
 
 @login_required
+def expense_head_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    expense_heads = ExpenseHead.objects.all()
+    return render(request, 'expense_heads/expense_head_list.html', {'expense_heads': expense_heads})
+
+
+@login_required
+def expense_head_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+
+        if not name:
+            messages.error(request, "Expense head name is required.")
+        elif ExpenseHead.objects.filter(name__iexact=name).exists():
+            messages.error(request, "This expense head already exists.")
+        else:
+            ExpenseHead.objects.create(name=name)
+            messages.success(request, f"Expense head '{name}' created successfully.")
+            return redirect('expense_head_list')
+
+    return render(request, 'expense_heads/expense_head_form.html', {'title': 'Add New Expense Head'})
+
+
+@login_required
+def expense_head_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    expense_head = get_object_or_404(ExpenseHead, pk=pk)
+    name = expense_head.name
+    expense_head.delete()
+    messages.success(request, f"Expense head '{name}' deleted successfully.")
+    return redirect('expense_head_list')
+
+@login_required
 def expense_edit_view(request, pk):
     from operations.models import Expense
 
@@ -213,3 +260,392 @@ def expense_edit_view(request, pk):
         'is_admin': is_admin,
         'title': 'Edit Expense',
     })
+
+
+@login_required
+def vehicle_list_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicles = Vehicle.objects.select_related('branch').all()
+    return render(request, 'vehicles/vehicle_list.html', {'vehicles': vehicles})
+
+
+@login_required
+def vehicle_create_view(request):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    branches = Branch.objects.all()
+
+    if request.method == 'POST':
+        vehicle_number = request.POST.get('vehicle_number', '').strip()
+        vehicle_type = request.POST.get('vehicle_type', '').strip()
+        branch_id = request.POST.get('branch')
+        driver_name = request.POST.get('driver_name', '').strip()
+        driver_phone = request.POST.get('driver_phone', '').strip()
+
+        if not all([vehicle_number, vehicle_type, branch_id, driver_name, driver_phone]):
+            messages.error(request, "All fields are required.")
+        elif Vehicle.objects.filter(vehicle_number__iexact=vehicle_number).exists():
+            messages.error(request, "This vehicle number already exists.")
+        else:
+            Vehicle.objects.create(
+                vehicle_number=vehicle_number,
+                vehicle_type=vehicle_type,
+                branch_id=branch_id,
+                driver_name=driver_name,
+                driver_phone=driver_phone
+            )
+            messages.success(request, "Vehicle created successfully.")
+            return redirect('vehicle_list')
+
+    return render(request, 'vehicles/vehicle_form.html', {
+        'title': 'Add New Vehicle',
+        'branches': branches
+    })
+
+@login_required
+def vehicle_edit_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    branches = Branch.objects.all()
+
+    if request.method == 'POST':
+        vehicle_number = request.POST.get('vehicle_number', '').strip()
+        vehicle_type = request.POST.get('vehicle_type', '').strip()
+        branch_id = request.POST.get('branch')
+        driver_name = request.POST.get('driver_name', '').strip()
+        driver_phone = request.POST.get('driver_phone', '').strip()
+
+        if not all([vehicle_number, vehicle_type, branch_id, driver_name, driver_phone]):
+            messages.error(request, "All fields are required.")
+        elif Vehicle.objects.filter(
+            vehicle_number__iexact=vehicle_number
+        ).exclude(pk=pk).exists():
+            messages.error(request, "This vehicle number already exists.")
+        else:
+            vehicle.vehicle_number = vehicle_number
+            vehicle.vehicle_type = vehicle_type
+            vehicle.branch_id = branch_id
+            vehicle.driver_name = driver_name
+            vehicle.driver_phone = driver_phone
+            vehicle.save()
+
+            messages.success(request, "Vehicle updated successfully.")
+            return redirect('vehicle_list')
+
+    return render(request, 'vehicles/vehicle_form.html', {
+        'title': 'Edit Vehicle',
+        'vehicle': vehicle,
+        'branches': branches
+    })
+
+
+@login_required
+def vehicle_delete_view(request, pk):
+    if not request.user.profile.is_admin:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    vehicle.delete()
+
+    messages.success(request, "Vehicle deleted successfully.")
+    return redirect
+
+@login_required
+def expense_list_view(request):
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    expenses = Expense.objects.select_related(
+        'branch',
+        'expense_head',
+        'staff'
+    ).all().order_by('-expense_date', '-id')
+
+    if not is_admin and user_profile and user_profile.branch:
+        expenses = expenses.filter(branch=user_profile.branch)
+    else:
+        branch_id = request.GET.get('branch_id')
+        if branch_id:
+            expenses = expenses.filter(branch_id=branch_id)
+
+    expense_head_id = request.GET.get('expense_head_id')
+    if expense_head_id:
+        expenses = expenses.filter(expense_head_id=expense_head_id)
+
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+
+    if date_from:
+        expenses = expenses.filter(expense_date__gte=date_from)
+
+    if date_to:
+        expenses = expenses.filter(expense_date__lte=date_to)
+
+    total_expense = expenses.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+
+    return render(request, 'operations/expense_list.html', {
+        'expenses': expenses,
+        'branches': branches,
+        'expense_heads': expense_heads,
+        'is_admin': is_admin,
+        'date_from': date_from or '',
+        'date_to': date_to or '',
+        'expense_head_id': expense_head_id or '',
+        'total_expense': total_expense,
+    })
+
+
+@login_required
+def expense_export_excel_view(request):
+    expenses = Expense.objects.select_related('branch', 'expense_head', 'staff').all()
+
+    branch_id = request.GET.get('branch_id')
+    if branch_id:
+        expenses = expenses.filter(branch_id=branch_id)
+
+    expense_head_id = request.GET.get('expense_head_id')
+    if expense_head_id:
+        expenses = expenses.filter(expense_head_id=expense_head_id)
+
+    date_from = request.GET.get('date_from')
+    if date_from:
+        expenses = expenses.filter(expense_date__gte=date_from)
+
+    date_to = request.GET.get('date_to')
+    if date_to:
+        expenses = expenses.filter(expense_date__lte=date_to)
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Expenses'
+
+    sheet.append(['Date', 'Branch', 'Expense Head', 'Amount', 'Description', 'Added By'])
+
+    for expense in expenses:
+        staff_name = expense.staff.username if expense.staff else ''
+        sheet.append([
+            expense.expense_date,
+            expense.branch.name,
+            expense.expense_head.name,
+            float(expense.amount),
+            expense.description or '',
+            staff_name,
+        ])
+
+    for cell in sheet['A'][1:]:
+        cell.number_format = 'DD-MM-YYYY'
+
+    from openpyxl.styles import Alignment
+
+    for row in sheet.iter_rows():
+     for cell in row:
+         cell.alignment = Alignment(
+            horizontal='center',
+            vertical='center'
+        )
+
+    # Center align and wrap text
+    for row in sheet.iter_rows():
+        for cell in row:
+          cell.alignment = Alignment(
+            horizontal='center',
+            vertical='center',
+            wrap_text=True
+        )
+
+
+    sheet.column_dimensions['A'].width = 15
+    sheet.column_dimensions['B'].width = 20
+    sheet.column_dimensions['C'].width = 25
+    sheet.column_dimensions['D'].width = 15
+    sheet.column_dimensions['E'].width = 50
+    sheet.column_dimensions['F'].width = 20
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+    response['Content-Disposition'] = 'attachment; filename="expense_report.xlsx"'
+
+    workbook.save(response)
+
+    return response
+
+@login_required
+def expense_vehicle_details_view(request):
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    branch_id = request.GET.get('branch_id')
+
+    vehicles = Vehicle.objects.select_related('branch').all()
+
+    if not is_admin and user_profile and user_profile.branch:
+        vehicles = vehicles.filter(branch=user_profile.branch)
+
+    elif branch_id:
+        vehicles = vehicles.filter(branch_id=branch_id)
+
+    branches = Branch.objects.filter(status='active')
+
+    return render(request, 'operations/expense_vehicle_details.html', {
+        'vehicles': vehicles,
+        'branches': branches,
+        'is_admin': is_admin,
+        'selected_branch_id': branch_id or '',
+    })
+
+@login_required
+def expense_entry_view(request):
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+    vehicles = Vehicle.objects.select_related('branch').all()
+
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch')
+        expense_date = request.POST.get('expense_date')
+        expense_head_id = request.POST.get('expense_head')
+        vehicle_id = request.POST.get('vehicle')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description', '').strip()
+
+        if not all([branch_id, expense_date, expense_head_id, amount]):
+            messages.error(request, "Please fill all required fields.")
+        else:
+            if vehicle_id:
+                try:
+                    vehicle = Vehicle.objects.select_related('branch').get(
+                        id=vehicle_id
+                    )
+
+                    vehicle_details = (
+                        f"Vehicle Number: {vehicle.vehicle_number}\n"
+                        f"Vehicle Type: {vehicle.vehicle_type}\n"
+                        f"Branch: {vehicle.branch.name}\n"
+                        f"Driver Name: {vehicle.driver_name}\n"
+                        f"Driver Phone: {vehicle.driver_phone}"
+                    )
+
+                    if description:
+                        description = f"{description}\n\n{vehicle_details}"
+                    else:
+                        description = vehicle_details
+
+                except Vehicle.DoesNotExist:
+                    messages.error(request, "Selected vehicle not found.")
+
+                    return render(
+                        request,
+                        'operations/expense_form.html',
+                        {
+                            'branches': branches,
+                            'expense_heads': expense_heads,
+                            'vehicles': vehicles,
+                            'is_admin': is_admin,
+                            'title': 'Add Expense',
+                        }
+                    )
+
+            Expense.objects.create(
+                branch_id=branch_id,
+                staff=request.user,
+                expense_date=expense_date,
+                expense_head_id=expense_head_id,
+                amount=amount,
+                description=description,
+                created_by=request.user,
+                updated_by=request.user
+            )
+
+            messages.success(request, "Expense added successfully.")
+            return redirect('expense_list')
+
+    return render(
+        request,
+        'operations/expense_form.html',
+        {
+            'branches': branches,
+            'expense_heads': expense_heads,
+            'vehicles': vehicles,
+            'is_admin': is_admin,
+            'title': 'Add Expense',
+        }
+    )
+@login_required
+def expense_edit_view(request, pk):
+    from operations.models import Expense
+
+    expense = get_object_or_404(Expense, pk=pk)
+
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    if not is_admin and user_profile and expense.branch != user_profile.branch:
+        messages.error(request, "Permission denied.")
+        return redirect('expense_list')
+
+    branches = Branch.objects.filter(status='active')
+    expense_heads = ExpenseHead.objects.all()
+
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch')
+        expense_date = request.POST.get('expense_date')
+        expense_head_id = request.POST.get('expense_head')
+        amount = request.POST.get('amount')
+        description = request.POST.get('description', '').strip()
+
+        if not all([branch_id, expense_date, expense_head_id, amount]):
+            messages.error(request, "Please fill all required fields.")
+        else:
+            expense.branch_id = branch_id
+            expense.expense_date = expense_date
+            expense.expense_head_id = expense_head_id
+            expense.amount = amount
+            expense.description = description
+            expense.updated_by = request.user
+            expense.save()
+
+            messages.success(request, "Expense updated successfully.")
+            return redirect('expense_list')
+
+    return render(request, 'operations/expense_form.html', {
+        'expense': expense,
+        'branches': branches,
+        'expense_heads': expense_heads,
+        'is_admin': is_admin,
+        'title': 'Edit Expense',
+    })
+
+@login_required
+def expense_delete_view(request, pk):
+    from operations.models import Expense
+
+    expense = get_object_or_404(Expense, pk=pk)
+
+    user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
+
+    if not is_admin and user_profile and expense.branch != user_profile.branch:
+        messages.error(request, "Permission denied.")
+        return redirect('expense_list')
+
+    expense.delete()
+    messages.success(request, "Expense deleted successfully.")
+    return redirect('expense_list')
