@@ -16,12 +16,12 @@ from operations.views import (
     expense_head_list_view, expense_head_create_view, expense_head_delete_view,
     vehicle_list_view, vehicle_create_view, vehicle_edit_view, vehicle_delete_view, 
     expense_list_view, expense_entry_view ,expense_edit_view, expense_delete_view, expense_vehicle_details_view,expense_export_excel_view,
-    
-    
+     
 )
 
 from reports.views import (
-    report_daily_view,report_daily_view,report_daily_export_excel_view,
+    report_daily_view, report_weekly_view, report_monthly_yearly_view,
+    report_daily_export_excel_view, report_weekly_export_excel_view,report_monthly_yearly_export_excel_view,
 )
 
 urlpatterns = [
@@ -93,10 +93,14 @@ urlpatterns = [
     path('expenses/export-excel/', expense_export_excel_view,name='expense_export_excel'),
 
     #reports
-    path('reports/daily/', report_daily_view, name='report_daily'),
-    path('reports/daily-profit-loss/', report_daily_view,name='report_daily'),
-    path('reports/daily-profit-loss/export-excel/',report_daily_export_excel_view,name='report_daily_export_excel'),
-    # API
+    path('reports/daily-profit-loss/', report_daily_view, name='report_daily'),
+    path('reports/weekly-profit-loss/', report_weekly_view, name='report_weekly'),
+    path('reports/monthly-yearly-profit-loss/', report_monthly_yearly_view, name='report_monthly_yearly'),
+    path('reports/daily-profit-loss/export-excel/', report_daily_export_excel_view, name='report_daily_export_excel'),
+    path('reports/weekly-profit-loss/export-excel/', report_weekly_export_excel_view, name='report_weekly_export_excel'),
+    path('reports/monthly-yearly-profit-loss/export-excel/', report_monthly_yearly_export_excel_view, name='report_monthly_yearly_export_excel'),
+
+    #Api
     path('api/', include('api.urls')),
 ]
 
