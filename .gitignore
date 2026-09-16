@@ -8,3 +8,4 @@ env/
 venv/
 *.log
 parishudam_project/settings.ini
+settings.ini
