@@ -21,7 +21,7 @@ from operations.views import (
 )
 
 from reports.views import (
-    report_daily_view
+    report_daily_view,report_daily_view,report_daily_export_excel_view,
 )
 
 urlpatterns = [
@@ -94,6 +94,8 @@ urlpatterns = [
 
     #reports
     path('reports/daily/', report_daily_view, name='report_daily'),
+    path('reports/daily-profit-loss/', report_daily_view,name='report_daily'),
+    path('reports/daily-profit-loss/export-excel/',report_daily_export_excel_view,name='report_daily_export_excel'),
     # API
     path('api/', include('api.urls')),
 ]

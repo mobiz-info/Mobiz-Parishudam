@@ -1,144 +1,1222 @@
 {% extends 'base.html' %}
 
-{% block title %}Daily Profit & Loss Report{% endblock %}
-{% block page_title %}Daily Profit & Loss Report{% endblock %}
-{% block page_subtitle %}Date-wise gross sales profit, itemized branch expenses, and net profit calculation{% endblock %}
+{% block title %}Profit & Loss Report{% endblock %}
+
+{% block page_title %}Profit & Loss Report{% endblock %}
+
+{% block page_subtitle %}
+Sales profit, expenses and net profit report
+{% endblock %}
+
+{% block header_actions %}
+
+<a
+    href="{% url 'report_daily_export_excel' %}?report_type={{ report_type }}&date_from={{ date_from|date:'Y-m-d' }}&month={{ selected_month }}&year={{ selected_year }}{% if selected_branch %}&branch_id={{ selected_branch.id }}{% endif %}"
+    class="btn-success"
+>
+    <i class="ph ph-file-xls"></i>
+    Download Excel
+</a>
+
+{% endblock %}
 
 {% block content %}
 
-<!-- Filter Toolbar -->
+<!-- =========================================
+     FILTER TOOLBAR
+========================================= -->
+
 <div class="filter-toolbar">
-    <form method="GET" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%;">
+
+    <form
+        method="GET"
+        style="
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            width: 100%;
+        "
+    >
+
+        <!-- Report Type -->
+
         <div class="filter-item">
-            <label><i class="ph ph-calendar"></i> Date:</label>
-            <input type="date" name="date" value="{{ report_date|date:'Y-m-d' }}" onchange="this.form.submit()">
+
+            <label>
+                <i class="ph ph-chart-line"></i>
+                Report Type:
+            </label>
+
+            <select
+                name="report_type"
+                id="report_type"
+            >
+                <option
+                    value="weekly"
+                    {% if report_type == 'weekly' %}
+                        selected
+                    {% endif %}
+                >
+                    Weekly
+                </option>
+
+                <option
+                    value="monthly"
+                    {% if report_type == 'monthly' %}
+                        selected
+                    {% endif %}
+                >
+                    Monthly
+                </option>
+
+                <option
+                    value="yearly"
+                    {% if report_type == 'yearly' %}
+                        selected
+                    {% endif %}
+                >
+                    Yearly
+                </option>
+            </select>
+
         </div>
+
+
+        <!-- Weekly From Date -->
+
+        <div
+            class="filter-item"
+            id="weekly-from-filter"
+        >
+
+            <label>
+                <i class="ph ph-calendar"></i>
+                From Date:
+            </label>
+
+            <input
+                type="date"
+                name="date_from"
+                id="date_from"
+                value="{{ date_from|date:'Y-m-d' }}"
+            >
+
+        </div>
+
+
+        <!-- Weekly To Date -->
+
+        <div
+            class="filter-item"
+            id="weekly-to-filter"
+        >
+
+            <label>
+                <i class="ph ph-calendar"></i>
+                To Date:
+            </label>
+
+            <input
+                type="date"
+                id="date_to_display"
+                value="{{ date_to|date:'Y-m-d' }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- Monthly -->
+
+        <div
+            class="filter-item"
+            id="monthly-filter"
+        >
+
+            <label>
+                <i class="ph ph-calendar"></i>
+                Month:
+            </label>
+
+            <input
+                type="month"
+                name="month"
+                value="{{ selected_month }}"
+            >
+
+        </div>
+
+
+        <!-- Yearly -->
+
+        <div
+            class="filter-item"
+            id="yearly-filter"
+        >
+
+            <label>
+                <i class="ph ph-calendar"></i>
+                Year:
+            </label>
+
+            <select
+                name="year"
+                id="year_select"
+            >
+            </select>
+
+        </div>
+
+
+        <!-- Branch -->
 
         {% if is_admin %}
+
         <div class="filter-item">
-            <label><i class="ph ph-buildings"></i> Branch:</label>
-            <select name="branch_id" onchange="this.form.submit()">
-                {% for b in branches %}
-                {% if selected_branch and selected_branch.id == b.id %}
-                <option value="{{ b.id }}" selected>{{ b.name }}</option>
-                {% else %}
-                <option value="{{ b.id }}">{{ b.name }}</option>
-                {% endif %}
+
+            <label>
+                <i class="ph ph-buildings"></i>
+                Branch:
+            </label>
+
+            <select name="branch_id">
+
+                <option value="">
+                    All Branches
+                </option>
+
+                {% for branch in branches %}
+
+                <option
+                    value="{{ branch.id }}"
+                    {% if selected_branch and selected_branch.id == branch.id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ branch.name }}
+                </option>
+
                 {% endfor %}
+
             </select>
+
         </div>
+
         {% endif %}
+
+
+        <!-- Apply Filter -->
+
+        <button
+            type="submit"
+            class="btn-primary"
+        >
+            <i class="ph ph-funnel"></i>
+            Apply Filter
+        </button>
+
+
+        <!-- Clear -->
+
+        <a
+            href="{% url 'report_daily' %}"
+            class="btn-secondary"
+        >
+            <i class="ph ph-arrows-counter-clockwise"></i>
+            Clear
+        </a>
+
     </form>
+
 </div>
 
-<!-- Summary Statement Card -->
+
+<!-- =========================================
+     REPORT INFORMATION
+========================================= -->
+
 <div
-    style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    style="
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+    "
+>
+
     <div
-        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">
-            DAILY STATEMENT — {{ selected_branch.name|default:"All Branches" }}
-        </h2>
-        <span
-            style="background: #e0e7ff; color: #4338ca; padding: 4px 12px; border-radius: 16px; font-weight: 600; font-size: 0.85rem;">
-            Date: {{ report_date|date:"d F Y" }}
-        </span>
-    </div>
+        style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        "
+    >
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
-
-        <!-- Left: Sales Profit Breakdown -->
         <div>
-            <h4
-                style="font-size: 0.95rem; font-weight: 700; color: #16a34a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-                <i class="ph-bold ph-trend-up"></i> Sales Profit Breakdown
-            </h4>
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>Packing Size</th>
-                        <th>Qty Sold</th>
-                        <th>Actual Margin</th>
-                        <th>Profit (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in sales_detail %}
-                    <tr>
-                        <td style="font-weight: 600;">{{ s.product_packing.packing_name }}</td>
-                        <td>{{ s.packing_count }}</td>
-                        <td>₹{{ s.margin }}</td>
-                        <td style="color: #16a34a; font-weight: 700;">₹{{ s.profit|floatformat:2 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" style="color: #94a3b8; text-align: center; padding: 12px;">No sales recorded on
-                            this date.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr style="background: #f8fafc; font-weight: 700;">
-                        <td colspan="3">GROSS SALES PROFIT</td>
-                        <td style="color: #16a34a; font-size: 1.05rem;">₹{{ gross_profit|floatformat:2 }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+
+            <div
+                style="
+                    font-size: 0.78rem;
+                    color: #64748b;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                "
+            >
+                {% if report_type == 'weekly' %}
+                    Weekly Report
+                {% elif report_type == 'monthly' %}
+                    Monthly Report
+                {% else %}
+                    Yearly Report
+                {% endif %}
+            </div>
+
+
+            <div
+                style="
+                    margin-top: 5px;
+                    font-size: 1.2rem;
+                    color: #0f172a;
+                    font-weight: 700;
+                "
+            >
+                {% if selected_branch %}
+                    {{ selected_branch.name }}
+                {% else %}
+                    All Branches
+                {% endif %}
+            </div>
+
         </div>
 
-        <!-- Right: Expense Breakdown -->
-        <div>
-            <h4
-                style="font-size: 0.95rem; font-weight: 700; color: #dc2626; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-                <i class="ph-bold ph-receipt"></i> Expenses Breakdown
-            </h4>
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>Expense Head</th>
-                        <th>Description</th>
-                        <th>Amount (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for e in expenses_detail %}
-                    <tr>
-                        <td style="font-weight: 600; color: #b91c1c;">{{ e.expense_head.name }}</td>
-                        <td>{{ e.description|default:"--" }}</td>
-                        <td style="color: #dc2626; font-weight: 700;">₹{{ e.amount|floatformat:2 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" style="color: #94a3b8; text-align: center; padding: 12px;">No expenses logged on
-                            this date.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr style="background: #f8fafc; font-weight: 700;">
-                        <td colspan="2">TOTAL EXPENSES</td>
-                        <td style="color: #dc2626; font-size: 1.05rem;">₹{{ total_expense|floatformat:2 }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+
+        <div
+            style="
+                background: #e0e7ff;
+                color: #4338ca;
+                padding: 7px 14px;
+                border-radius: 18px;
+                font-weight: 700;
+                font-size: 0.85rem;
+            "
+        >
+
+            {% if report_type == 'weekly' %}
+
+                {{ date_from|date:"d M Y" }}
+                -
+                {{ date_to|date:"d M Y" }}
+
+            {% elif report_type == 'monthly' %}
+
+                {{ date_from|date:"F Y" }}
+
+            {% else %}
+
+                {{ selected_year }}
+
+            {% endif %}
+
         </div>
 
     </div>
 
-    <!-- Net Profit Highlight Box -->
+</div>
+
+
+<!-- =========================================
+     SUMMARY CARDS
+========================================= -->
+
+<div
+    style="
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+        width: 100%;
+    "
+>
+
+    <!-- Sale Profit -->
+
     <div
-        style="margin-top: 32px; background: {% if net_profit >= 0 %}#f0fdf4{% else %}#fef2f2{% endif %}; border: 2px solid {% if net_profit >= 0 %}#bbf7d0{% else %}#fecaca{% endif %}; border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
+        style="
+            background: #ffffff;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+        "
+    >
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            "
+        >
+
             <span
-                style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: {% if net_profit >= 0 %}#15803d{% else %}#b91c1c{% endif %};">
-                FINAL NET PROFIT FOR {{ report_date|date:"d M Y" }}
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #15803d;
+                    text-transform: uppercase;
+                "
+            >
+                Sale Profit
+            </span>
+
+            <i
+                class="ph-bold ph-trend-up"
+                style="
+                    font-size: 1.4rem;
+                    color: #16a34a;
+                "
+            ></i>
+
+        </div>
+
+        <div
+            style="
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #15803d;
+            "
+        >
+            ₹{{ sale_profit|floatformat:2 }}
+        </div>
+
+        <div
+            style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                color: #64748b;
+            "
+        >
+            Total sales profit
+        </div>
+
+    </div>
+
+
+    <!-- Expense -->
+
+    <div
+        style="
+            background: #ffffff;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+        "
+    >
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            "
+        >
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #b91c1c;
+                    text-transform: uppercase;
+                "
+            >
+                Expense
+            </span>
+
+            <i
+                class="ph-bold ph-receipt"
+                style="
+                    font-size: 1.4rem;
+                    color: #dc2626;
+                "
+            ></i>
+
+        </div>
+
+        <div
+            style="
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #b91c1c;
+            "
+        >
+            ₹{{ total_expense|floatformat:2 }}
+        </div>
+
+        <div
+            style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                color: #64748b;
+            "
+        >
+            Total expenses
+        </div>
+
+    </div>
+
+
+    <!-- Net Profit -->
+
+    {% if net_profit >= 0 %}
+
+    <div
+        style="
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+        "
+    >
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            "
+        >
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #15803d;
+                    text-transform: uppercase;
+                "
+            >
+                Net Profit
+            </span>
+
+            <i
+                class="ph-bold ph-chart-line-up"
+                style="
+                    font-size: 1.4rem;
+                    color: #16a34a;
+                "
+            ></i>
+
+        </div>
+
+        <div
+            style="
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #15803d;
+            "
+        >
+            ₹{{ net_profit|floatformat:2 }}
+        </div>
+
+        <div
+            style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                color: #64748b;
+            "
+        >
+            Sale profit - expense
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div
+        style="
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+        "
+    >
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            "
+        >
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #b91c1c;
+                    text-transform: uppercase;
+                "
+            >
+                Net Profit
+            </span>
+
+            <i
+                class="ph-bold ph-chart-line-down"
+                style="
+                    font-size: 1.4rem;
+                    color: #dc2626;
+                "
+            ></i>
+
+        </div>
+
+        <div
+            style="
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #b91c1c;
+            "
+        >
+            ₹{{ net_profit|floatformat:2 }}
+        </div>
+
+        <div
+            style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                color: #64748b;
+            "
+        >
+            Sale profit - expense
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- Total Sold Volume -->
+
+    <div
+        style="
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+        "
+    >
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            "
+        >
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #334155;
+                    text-transform: uppercase;
+                "
+            >
+                Total Sold Volume
+            </span>
+
+            <i
+                class="ph-bold ph-drop"
+                style="
+                    font-size: 1.4rem;
+                    color: #475569;
+                "
+            ></i>
+
+        </div>
+
+        <div
+            style="
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #0f172a;
+            "
+        >
+            {{ total_sold_volume|floatformat:2 }} L
+        </div>
+
+        <div
+            style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                color: #64748b;
+            "
+        >
+            Total volume sold
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     REPORT LIST
+========================================= -->
+
+<div
+    class="list-container"
+    style="
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+    "
+>
+
+    <div class="list-header">
+
+        <h3
+            style="
+                font-size: 1rem;
+                font-weight: 600;
+                color: #0f172a;
+            "
+        >
+
+            {% if report_type == 'weekly' %}
+
+                Weekly Profit & Loss
+
+            {% elif report_type == 'monthly' %}
+
+                Monthly Profit & Loss
+
+            {% else %}
+
+                Yearly Profit & Loss
+
+            {% endif %}
+
+        </h3>
+
+    </div>
+
+
+    <div
+        style="
+            width: 100%;
+            overflow-x: auto;
+        "
+    >
+
+        <table
+            class="premium-table"
+            style="
+                width: 100%;
+                min-width: 750px;
+            "
+        >
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        {% if report_type == 'yearly' %}
+                            Month
+                        {% else %}
+                            Date
+                        {% endif %}
+                    </th>
+
+                    <th>
+                        {% if report_type == 'yearly' %}
+                            Year
+                        {% else %}
+                            Day
+                        {% endif %}
+                    </th>
+
+                    <th>
+                        Sale Profit
+                    </th>
+
+                    <th>
+                        Expense
+                    </th>
+
+                    <th>
+                        Net Profit
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in report_rows %}
+
+                <tr>
+
+                    <td style="font-weight: 600;">
+
+                        {% if report_type == 'yearly' %}
+                            {{ row.period }}
+                        {% else %}
+                            {{ row.date|date:"d-M-Y" }}
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+                        {{ row.day }}
+                    </td>
+
+
+                    <td
+                        style="
+                            color: #16a34a;
+                            font-weight: 700;
+                        "
+                    >
+                        ₹{{ row.sale_profit|floatformat:2 }}
+                    </td>
+
+
+                    <td
+                        style="
+                            color: #dc2626;
+                            font-weight: 700;
+                        "
+                    >
+                        ₹{{ row.expense|floatformat:2 }}
+                    </td>
+
+
+                    {% if row.net_profit >= 0 %}
+
+                    <td
+                        style="
+                            color: #16a34a;
+                            font-weight: 800;
+                        "
+                    >
+                        ₹{{ row.net_profit|floatformat:2 }}
+                    </td>
+
+                    {% else %}
+
+                    <td
+                        style="
+                            color: #dc2626;
+                            font-weight: 800;
+                        "
+                    >
+                        ₹{{ row.net_profit|floatformat:2 }}
+                    </td>
+
+                    {% endif %}
+
+                </tr>
+
+
+                {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="5"
+                        style="
+                            text-align: center;
+                            color: #64748b;
+                            padding: 30px;
+                        "
+                    >
+                        No records found.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+
+            <!-- TOTAL -->
+
+            <tfoot>
+
+                <tr
+                    style="
+                        background: #eef2ff;
+                        border-top: 2px solid #c7d2fe;
+                    "
+                >
+
+                    <td
+                        colspan="2"
+                        style="
+                            padding: 16px;
+                            font-size: 1rem;
+                            font-weight: 800;
+                            color: #1e293b;
+                        "
+                    >
+                        TOTAL
+                    </td>
+
+
+                    <td
+                        style="
+                            padding: 16px;
+                            color: #15803d;
+                            font-size: 1.05rem;
+                            font-weight: 800;
+                        "
+                    >
+                        ₹{{ sale_profit|floatformat:2 }}
+                    </td>
+
+
+                    <td
+                        style="
+                            padding: 16px;
+                            color: #b91c1c;
+                            font-size: 1.05rem;
+                            font-weight: 800;
+                        "
+                    >
+                        ₹{{ total_expense|floatformat:2 }}
+                    </td>
+
+
+                    {% if net_profit >= 0 %}
+
+                    <td
+                        style="
+                            padding: 16px;
+                            color: #15803d;
+                            font-size: 1.15rem;
+                            font-weight: 900;
+                        "
+                    >
+                        ₹{{ net_profit|floatformat:2 }}
+                    </td>
+
+                    {% else %}
+
+                    <td
+                        style="
+                            padding: 16px;
+                            color: #b91c1c;
+                            font-size: 1.15rem;
+                            font-weight: 900;
+                        "
+                    >
+                        ₹{{ net_profit|floatformat:2 }}
+                    </td>
+
+                    {% endif %}
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+    </div>
+
+
+    <!-- =====================================
+         FINAL NET PROFIT HIGHLIGHT
+    ====================================== -->
+
+    {% if net_profit >= 0 %}
+
+    <div
+        style="
+            margin-top: 24px;
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        "
+    >
+
+        <div>
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: #15803d;
+                "
+            >
+
+                FINAL NET PROFIT
+
+                {% if report_type == 'weekly' %}
+                    - {{ date_from|date:"d M Y" }}
+                    to
+                    {{ date_to|date:"d M Y" }}
+                {% elif report_type == 'monthly' %}
+                    - {{ date_from|date:"F Y" }}
+                {% else %}
+                    - {{ selected_year }}
+                {% endif %}
+
             </span>
 
         </div>
+
+
         <div
-            style="font-size: 2.2rem; font-weight: 800; color: {% if net_profit >= 0 %}#15803d{% else %}#b91c1c{% endif %};">
+            style="
+                font-size: 2.2rem;
+                font-weight: 800;
+                color: #15803d;
+            "
+        >
             ₹{{ net_profit|floatformat:2 }}
         </div>
+
     </div>
+
+    {% else %}
+
+    <div
+        style="
+            margin-top: 24px;
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        "
+    >
+
+        <div>
+
+            <span
+                style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: #b91c1c;
+                "
+            >
+
+                FINAL NET PROFIT
+
+                {% if report_type == 'weekly' %}
+                    - {{ date_from|date:"d M Y" }}
+                    to
+                    {{ date_to|date:"d M Y" }}
+                {% elif report_type == 'monthly' %}
+                    - {{ date_from|date:"F Y" }}
+                {% else %}
+                    - {{ selected_year }}
+                {% endif %}
+
+            </span>
+
+        </div>
+
+
+        <div
+            style="
+                font-size: 2.2rem;
+                font-weight: 800;
+                color: #b91c1c;
+            "
+        >
+            ₹{{ net_profit|floatformat:2 }}
+        </div>
+
+    </div>
+
+    {% endif %}
+
 </div>
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================= -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const reportType =
+        document.getElementById('report_type');
+
+    const weeklyFromFilter =
+        document.getElementById('weekly-from-filter');
+
+    const weeklyToFilter =
+        document.getElementById('weekly-to-filter');
+
+    const monthlyFilter =
+        document.getElementById('monthly-filter');
+
+    const yearlyFilter =
+        document.getElementById('yearly-filter');
+
+    const fromDate =
+        document.getElementById('date_from');
+
+    const toDateDisplay =
+        document.getElementById('date_to_display');
+
+    const yearSelect =
+        document.getElementById('year_select');
+
+
+    /* =====================================
+       GENERATE YEAR DROPDOWN
+    ====================================== */
+
+    const currentYear =
+        new Date().getFullYear();
+
+    const selectedYear =
+        "{{ selected_year|default:'' }}";
+
+    for (
+        let year = currentYear - 5;
+        year <= currentYear + 5;
+        year++
+    ) {
+
+        const option =
+            document.createElement('option');
+
+        option.value = year;
+        option.textContent = year;
+
+        if (
+            String(year) ===
+            String(selectedYear)
+        ) {
+            option.selected = true;
+        }
+
+        yearSelect.appendChild(option);
+    }
+
+
+    /* =====================================
+       SHOW / HIDE FILTERS
+    ====================================== */
+
+    function updateVisibility() {
+
+        weeklyFromFilter.style.display = 'none';
+        weeklyToFilter.style.display = 'none';
+        monthlyFilter.style.display = 'none';
+        yearlyFilter.style.display = 'none';
+
+
+        if (reportType.value === 'weekly') {
+
+            weeklyFromFilter.style.display =
+                'flex';
+
+            weeklyToFilter.style.display =
+                'flex';
+
+        }
+        else if (reportType.value === 'monthly') {
+
+            monthlyFilter.style.display =
+                'flex';
+
+        }
+        else if (reportType.value === 'yearly') {
+
+            yearlyFilter.style.display =
+                'flex';
+
+        }
+    }
+
+
+    /* =====================================
+       WEEKLY TO DATE
+    ====================================== */
+
+    function updateWeeklyToDate() {
+
+        if (!fromDate.value) {
+            return;
+        }
+
+        const startDate =
+            new Date(
+                fromDate.value + 'T00:00:00'
+            );
+
+        startDate.setDate(
+            startDate.getDate() + 6
+        );
+
+        const year =
+            startDate.getFullYear();
+
+        const month =
+            String(
+                startDate.getMonth() + 1
+            ).padStart(2, '0');
+
+        const day =
+            String(
+                startDate.getDate()
+            ).padStart(2, '0');
+
+        toDateDisplay.value =
+            year + '-' +
+            month + '-' +
+            day;
+    }
+
+
+    reportType.addEventListener(
+        'change',
+        updateVisibility
+    );
+
+
+    fromDate.addEventListener(
+        'change',
+        updateWeeklyToDate
+    );
+
+
+    updateVisibility();
+    updateWeeklyToDate();
+
+});
+</script>
+
 {% endblock %}
