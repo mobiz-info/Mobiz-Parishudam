@@ -20,6 +20,10 @@ from operations.views import (
     
 )
 
+from reports.views import (
+    report_daily_view
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login_view, name='login'),
@@ -84,10 +88,12 @@ urlpatterns = [
     path('expenses/', expense_list_view, name='expense_list'),
     path('expenses/add/', expense_entry_view, name='expense_entry'),
     path('expenses/<int:pk>/edit/', expense_edit_view, name='expense_edit'),
-    path('expenses/<int:pk>/delete/', expense_delete_view, name='expense_delete'),
-    path('expense/vehicle-details/',expense_vehicle_details_view,name='expense_vehicle_details'),
-path('expenses/export-excel/', expense_export_excel_view,name='expense_export_excel'),
 
+    path('expense/vehicle-details/',expense_vehicle_details_view,name='expense_vehicle_details'),
+    path('expenses/export-excel/', expense_export_excel_view,name='expense_export_excel'),
+
+    #reports
+    path('reports/daily/', report_daily_view, name='report_daily'),
     # API
     path('api/', include('api.urls')),
 ]

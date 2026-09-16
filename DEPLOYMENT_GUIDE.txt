@@ -1,0 +1,244 @@
+================================================================
+   PARISHUDAM PROJECT - DEPLOYMENT GUIDE
+   Server: 68.183.94.11 | SSH Port: 23
+   App URL: http://68.183.94.11:555/
+================================================================
+
+----------------------------------------------------------------
+SECTION 1 — FIRST TIME DEPLOYMENT (FROM SCRATCH)
+----------------------------------------------------------------
+
+STEP 1: Push code to GitHub (Run on your Mac)
+----------------------------------------------
+cd "/Users/muhammedanshid/Desktop/Mobiz Parishudam copy"
+git add .
+git commit -m "Deploy: initial deployment"
+git push origin main
+
+
+STEP 2: SSH into Server
+------------------------
+ssh -p 23 root@68.183.94.11
+
+
+STEP 3: Create Project Folder & Clone
+--------------------------------------
+mkdir -p /home/mobiz/webapps/parishudam/live
+cd /home/mobiz/webapps/parishudam/live
+git clone https://github.com/mobiz-info/Mobiz-Parishudam.git .
+
+
+STEP 4: Install System Dependencies
+-------------------------------------
+apt-get update
+apt-get install -y python3-dev default-libmysqlclient-dev build-essential pkg-config
+
+
+STEP 5: Create Virtualenv & Install Requirements
+-------------------------------------------------
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install mysqlclient
+
+
+STEP 6: Create settings.ini (DB Credentials)
+---------------------------------------------
+nano /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam/parishudam_project/settings.ini
+
+Paste the following content:
+---
+[settings]
+DB_USER = <your_db_user>
+DB_PASSWORD = <your_db_password>
+DB_HOST = <your_db_host>
+DB_PORT = <your_db_port>
+DB_NAME = parishudam
+---
+Save: Ctrl+X → Y → Enter
+
+
+STEP 7: Run Migrations & Collect Static
+-----------------------------------------
+cd /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam
+source /home/mobiz/webapps/parishudam/live/venv/bin/activate
+
+python3 manage.py migrate
+mkdir -p static
+python3 manage.py collectstatic --noinput
+
+
+STEP 8: Create Systemd Service
+--------------------------------
+nano /etc/systemd/system/parishudam.service
+
+Paste the following content:
+---
+[Unit]
+Description=Parishudam Django Backend
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/home/mobiz/webapps/parishudam/live/Mobiz-Parishudam
+ExecStart=/home/mobiz/webapps/parishudam/live/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 0.0.0.0:8003 \
+    parishudam_project.wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+---
+Save: Ctrl+X → Y → Enter
+
+
+STEP 9: Start & Enable Service
+---------------------------------
+systemctl daemon-reload
+systemctl start parishudam.service
+systemctl enable parishudam.service
+systemctl status parishudam.service
+
+
+STEP 10: Configure Nginx
+--------------------------
+nano /etc/nginx/sites-available/parishudam
+
+Paste the following content:
+---
+server {
+    listen 555;
+    server_name 68.183.94.11;
+
+    location /static/ {
+        alias /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam/staticfiles/;
+    }
+
+    location /media/ {
+        alias /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam/media/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8003;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+---
+Save: Ctrl+X → Y → Enter
+
+ln -s /etc/nginx/sites-available/parishudam /etc/nginx/sites-enabled/
+nginx -t
+systemctl reload nginx
+
+
+STEP 11: Create Admin User
+---------------------------
+cd /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam
+source /home/mobiz/webapps/parishudam/live/venv/bin/activate
+python3 manage.py createsuperuser --username admin --email admin@admin.com
+(Enter password when prompted, type 'y' to bypass weak password warning)
+
+
+STEP 12: Create Admin Profile (To Show All Menus)
+---------------------------------------------------
+python3 manage.py shell -c "
+from django.contrib.auth.models import User
+from core.models import StaffProfile
+
+admin = User.objects.get(username='admin')
+profile, created = StaffProfile.objects.get_or_create(
+    user=admin,
+    defaults={'role': 'ADMIN', 'status': 'active'}
+)
+if not created:
+    profile.role = 'ADMIN'
+    profile.save()
+print('Done:', profile)
+"
+
+
+STEP 13: Verify
+-----------------
+curl http://127.0.0.1:8003/
+Open browser: http://68.183.94.11:555/
+
+
+----------------------------------------------------------------
+SECTION 2 — UPDATING CODE (FUTURE DEPLOYMENTS)
+----------------------------------------------------------------
+
+Run on your Mac first:
+-----------------------
+cd "/Users/muhammedanshid/Desktop/Mobiz Parishudam copy"
+git add .
+git commit -m "Update: description of changes"
+git push origin main
+
+Then SSH into server and run:
+------------------------------
+ssh -p 23 root@68.183.94.11
+
+cd /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam
+git pull origin main
+source /home/mobiz/webapps/parishudam/live/venv/bin/activate
+python3 manage.py migrate
+python3 manage.py collectstatic --noinput
+systemctl restart parishudam.service
+
+
+----------------------------------------------------------------
+SECTION 3 — TROUBLESHOOTING
+----------------------------------------------------------------
+
+Check service status:
+  systemctl status parishudam.service
+
+Check service logs:
+  journalctl -u parishudam.service -n 50 --no-pager
+
+Check nginx errors:
+  tail -20 /var/log/nginx/error.log
+
+Test gunicorn directly:
+  curl http://127.0.0.1:8003/
+
+Restart everything:
+  systemctl restart parishudam.service
+  systemctl reload nginx
+
+Check firewall:
+  ufw status
+  ufw allow 555
+
+
+----------------------------------------------------------------
+SECTION 4 — PORT REFERENCE
+----------------------------------------------------------------
+
+  SSH Port          : 23
+  Gunicorn Port     : 8003  (internal only)
+  Nginx Port        : 555   (public)
+  App URL           : http://68.183.94.11:555/
+  Admin URL         : http://68.183.94.11:555/admin/
+  Login URL         : http://68.183.94.11:555/login/
+
+  Admin Credentials:
+  Username          : admin
+  Password          : admin
+
+
+----------------------------------------------------------------
+SECTION 5 — KEY FILE LOCATIONS ON SERVER
+----------------------------------------------------------------
+
+  Project Code      : /home/mobiz/webapps/parishudam/live/Mobiz-Parishudam/
+  Virtual Env       : /home/mobiz/webapps/parishudam/live/venv/
+  DB Credentials    : parishudam_project/settings.ini  (NOT in GitHub)
+  Static Files      : staticfiles/
+  Service File      : /etc/systemd/system/parishudam.service
+  Nginx Config      : /etc/nginx/sites-available/parishudam
+
+================================================================
