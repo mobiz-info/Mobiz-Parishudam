@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parishudam Coconut Oil | {% block title %}P&L Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/parishudam.jpeg' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
@@ -592,9 +594,9 @@
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <i class="ph-drop-fill"></i>
-            <span>PARISHUDAM P&L</span>
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px;">
+            <img src="{% static 'images/parishudam.jpeg' %}" alt="Parishudam Logo" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; background: white; padding: 2px;">
+            <span style="font-weight: 700; letter-spacing: 0.5px;">PARISHUDAM</span>
         </div>
         <div class="sidebar-content">
 

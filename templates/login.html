@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Parishudam Coconut Oil</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/parishudam.jpeg' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
@@ -128,7 +130,7 @@
 
     <div class="login-card">
         <div class="brand-header">
-            <i class="ph-fill ph-drop"></i>
+            <img src="{% static 'images/parishudam.jpeg' %}" alt="Parishudam Logo" style="width: 72px; height: 72px; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 12px;">
             <h1>Parishudam P&L</h1>
             <p>Sign in to your account</p>
         </div>
