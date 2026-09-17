@@ -509,47 +509,149 @@ def expense_vehicle_details_view(request):
         'selected_branch_id': branch_id or '',
     })
 
+# --- EXPENSE ENTRY ---
 @login_required
 def expense_entry_view(request):
     user_profile = getattr(request.user, 'profile', None)
-    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
 
-    branches = Branch.objects.filter(status='active')
+    is_admin = (
+        user_profile.is_admin
+        if user_profile
+        else request.user.is_superuser
+    )
+
+    branches = Branch.objects.filter(
+        status='active'
+    )
+
     expense_heads = ExpenseHead.objects.all()
-    vehicles = Vehicle.objects.select_related('branch').all()
+
+    vehicles = Vehicle.objects.select_related(
+        'branch'
+    ).all()
+
+    # -----------------------------------------------------
+    # Selected Branch
+    # -----------------------------------------------------
+
+    branch_id = request.GET.get('branch_id')
+
+    selected_branch = None
+
+    if (
+        not is_admin
+        and user_profile
+        and user_profile.branch
+    ):
+        selected_branch = user_profile.branch
+
+        vehicles = vehicles.filter(
+            branch=user_profile.branch
+        )
+
+    elif branch_id:
+
+        selected_branch = Branch.objects.filter(
+            id=branch_id,
+            status='active'
+        ).first()
+
+        if selected_branch:
+            vehicles = vehicles.filter(
+                branch=selected_branch
+            )
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == 'POST':
+
         branch_id = request.POST.get('branch')
         expense_date = request.POST.get('expense_date')
         expense_head_id = request.POST.get('expense_head')
         vehicle_id = request.POST.get('vehicle')
         amount = request.POST.get('amount')
-        description = request.POST.get('description', '').strip()
+        description = request.POST.get(
+            'description',
+            ''
+        ).strip()
 
-        if not all([branch_id, expense_date, expense_head_id, amount]):
-            messages.error(request, "Please fill all required fields.")
-        else:
-            if vehicle_id:
-                try:
-                    vehicle = Vehicle.objects.select_related('branch').get(
-                        id=vehicle_id
+        # -------------------------------------------------
+        # Required Fields
+        # -------------------------------------------------
+
+        if not all([
+            branch_id,
+            expense_date,
+            expense_head_id,
+            amount
+        ]):
+
+            messages.error(
+                request,
+                "Please fill all required fields."
+            )
+
+            return render(
+                request,
+                'operations/expense_form.html',
+                {
+                    'branches': branches,
+                    'expense_heads': expense_heads,
+                    'vehicles': vehicles,
+                    'is_admin': is_admin,
+                    'selected_branch': selected_branch,
+                    'title': 'Add Expense',
+                }
+            )
+
+        # -------------------------------------------------
+        # Non-admin Branch Protection
+        # -------------------------------------------------
+
+        if (
+            not is_admin
+            and user_profile
+            and user_profile.branch
+        ):
+
+            if str(branch_id) != str(
+                user_profile.branch.id
+            ):
+
+                messages.error(
+                    request,
+                    "Permission denied."
+                )
+
+                return redirect(
+                    'expense_entry'
+                )
+
+        # -------------------------------------------------
+        # Vehicle Details
+        # -------------------------------------------------
+
+        if vehicle_id:
+
+            try:
+
+                vehicle = Vehicle.objects.select_related(
+                    'branch'
+                ).get(
+                    id=vehicle_id
+                )
+
+                # Vehicle must belong to selected branch
+                if str(vehicle.branch_id) != str(
+                    branch_id
+                ):
+
+                    messages.error(
+                        request,
+                        "Selected vehicle does not belong to the selected branch."
                     )
-
-                    vehicle_details = (
-                        f"Vehicle Number: {vehicle.vehicle_number}\n"
-                        f"Vehicle Type: {vehicle.vehicle_type}\n"
-                        f"Branch: {vehicle.branch.name}\n"
-                        f"Driver Name: {vehicle.driver_name}\n"
-                        f"Driver Phone: {vehicle.driver_phone}"
-                    )
-
-                    if description:
-                        description = f"{description}\n\n{vehicle_details}"
-                    else:
-                        description = vehicle_details
-
-                except Vehicle.DoesNotExist:
-                    messages.error(request, "Selected vehicle not found.")
 
                     return render(
                         request,
@@ -559,23 +661,82 @@ def expense_entry_view(request):
                             'expense_heads': expense_heads,
                             'vehicles': vehicles,
                             'is_admin': is_admin,
+                            'selected_branch': selected_branch,
                             'title': 'Add Expense',
                         }
                     )
 
-            Expense.objects.create(
-                branch_id=branch_id,
-                staff=request.user,
-                expense_date=expense_date,
-                expense_head_id=expense_head_id,
-                amount=amount,
-                description=description,
-                created_by=request.user,
-                updated_by=request.user
-            )
+                vehicle_details = (
+                    f"Vehicle Number: "
+                    f"{vehicle.vehicle_number}\n"
+                    f"Vehicle Type: "
+                    f"{vehicle.vehicle_type}\n"
+                    f"Branch: "
+                    f"{vehicle.branch.name}\n"
+                    f"Driver Name: "
+                    f"{vehicle.driver_name}\n"
+                    f"Driver Phone: "
+                    f"{vehicle.driver_phone}"
+                )
 
-            messages.success(request, "Expense added successfully.")
-            return redirect('expense_list')
+                if description:
+
+                    description = (
+                        f"{description}\n\n"
+                        f"{vehicle_details}"
+                    )
+
+                else:
+
+                    description = vehicle_details
+
+            except Vehicle.DoesNotExist:
+
+                messages.error(
+                    request,
+                    "Selected vehicle not found."
+                )
+
+                return render(
+                    request,
+                    'operations/expense_form.html',
+                    {
+                        'branches': branches,
+                        'expense_heads': expense_heads,
+                        'vehicles': vehicles,
+                        'is_admin': is_admin,
+                        'selected_branch': selected_branch,
+                        'title': 'Add Expense',
+                    }
+                )
+
+        # -------------------------------------------------
+        # Create Expense
+        # -------------------------------------------------
+
+        Expense.objects.create(
+            branch_id=branch_id,
+            staff=request.user,
+            expense_date=expense_date,
+            expense_head_id=expense_head_id,
+            amount=amount,
+            description=description,
+            created_by=request.user,
+            updated_by=request.user
+        )
+
+        messages.success(
+            request,
+            "Expense added successfully."
+        )
+
+        return redirect(
+            'expense_list'
+        )
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
 
     return render(
         request,
@@ -585,9 +746,11 @@ def expense_entry_view(request):
             'expense_heads': expense_heads,
             'vehicles': vehicles,
             'is_admin': is_admin,
+            'selected_branch': selected_branch,
             'title': 'Add Expense',
         }
     )
+
 @login_required
 def expense_edit_view(request, pk):
     from operations.models import Expense
