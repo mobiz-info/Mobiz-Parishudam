@@ -1,264 +1,1512 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block page_title %}{{ title }}{% endblock %}
-
-{% block page_subtitle %}Add branch expense details{% endblock %}
+{% block title %}
+    {{ title|default:"Add Expense" }}
+{% endblock %}
 
 {% block content %}
 
-<div class="premium-form-container">
+<style>
 
-    <div class="premium-form-title">
-        {{ title }}
+    .expense-page {
+        max-width: 1250px;
+        margin: 0 auto;
+        padding: 35px 0 40px;
+    }
+
+
+    /* =========================
+       PAGE HEADER
+    ========================== */
+
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+
+    /* =========================
+       SELECTOR CARD
+    ========================== */
+
+    .selector-card {
+        background: linear-gradient(
+            145deg,
+            #ffffff,
+            #fafafa
+        );
+
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+
+        padding: 26px;
+
+        margin-bottom: 25px;
+
+        box-shadow:
+            0 10px 30px rgba(15, 23, 42, 0.05);
+    }
+
+
+    .selector-header {
+        display: flex;
+        align-items: center;
+
+        gap: 14px;
+
+        margin-bottom: 24px;
+    }
+
+
+    .selector-header-icon {
+        width: 46px;
+        height: 46px;
+
+        border-radius: 13px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: linear-gradient(
+            135deg,
+            #ede9fe,
+            #f5f3ff
+        );
+
+        color: #7c3aed;
+
+        font-size: 21px;
+
+        flex-shrink: 0;
+    }
+
+
+    .selector-header-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+
+    .selector-header-subtitle {
+        font-size: 12px;
+        color: #9ca3af;
+
+        margin-top: 3px;
+    }
+
+
+    /* =========================
+       SELECTOR GROUP
+    ========================== */
+
+    .selector-group {
+        margin-bottom: 18px;
+    }
+
+    .selector-group:last-child {
+        margin-bottom: 0;
+    }
+
+
+    .selector-label {
+        display: block;
+
+        margin-bottom: 9px;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        color: #374151;
+    }
+
+
+    /* =========================
+       CUSTOM SELECT
+    ========================== */
+
+    .custom-select-wrap {
+        position: relative;
+        width: 100%;
+    }
+
+
+    .custom-select-wrap::before {
+        content: "";
+
+        position: absolute;
+
+        left: 16px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        width: 34px;
+        height: 34px;
+
+        border-radius: 10px;
+
+        background: #f5f3ff;
+
+        pointer-events: none;
+
+        z-index: 1;
+    }
+
+
+    .custom-select-icon {
+        position: absolute;
+
+        left: 26px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        color: #7c3aed;
+
+        font-size: 16px;
+
+        pointer-events: none;
+
+        z-index: 2;
+    }
+
+
+    .custom-select-arrow {
+        position: absolute;
+
+        right: 18px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        color: #6b7280;
+
+        font-size: 17px;
+
+        pointer-events: none;
+
+        z-index: 2;
+    }
+
+
+    .custom-select {
+        width: 100%;
+        height: 54px;
+
+        appearance: none;
+        -webkit-appearance: none;
+
+        border: 1px solid #dfe3ea;
+
+        border-radius: 14px;
+
+        background: #ffffff;
+
+        color: #1f2937;
+
+        padding: 0 48px 0 66px;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        outline: none;
+
+        cursor: pointer;
+
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .custom-select:hover {
+        border-color: #c4b5fd;
+
+        box-shadow:
+            0 5px 15px rgba(124, 58, 237, 0.06);
+    }
+
+
+    .custom-select:focus {
+        border-color: #8b5cf6;
+
+        box-shadow:
+            0 0 0 4px rgba(139, 92, 246, 0.12);
+
+        transform: translateY(-1px);
+    }
+
+
+    .custom-select option {
+        color: #1f2937;
+        background: #ffffff;
+        font-weight: 500;
+    }
+
+
+    /* =========================
+       SECOND DROPDOWN
+    ========================== */
+
+    .second-selector {
+        margin-top: 20px;
+
+        padding-top: 20px;
+
+        border-top: 1px solid #f0f0f0;
+
+        animation: selectorFade 0.25s ease;
+    }
+
+
+    @keyframes selectorFade {
+
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    }
+
+
+    /* =========================
+       SELECTED CARD
+    ========================== */
+
+    .selection-card {
+        display: flex;
+
+        align-items: center;
+
+        gap: 15px;
+
+        background: linear-gradient(
+            135deg,
+            #faf5ff,
+            #f5f3ff
+        );
+
+        border: 1px solid #ddd6fe;
+
+        border-radius: 17px;
+
+        padding: 18px 20px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .selection-icon {
+        width: 44px;
+        height: 44px;
+
+        border-radius: 12px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #ede9fe;
+
+        color: #7c3aed;
+
+        font-size: 19px;
+    }
+
+
+    .selection-title {
+        font-size: 11px;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
+
+        font-weight: 700;
+
+        color: #8b5cf6;
+
+        margin-bottom: 3px;
+    }
+
+
+    .selection-name {
+        font-size: 19px;
+
+        font-weight: 700;
+
+        color: #4c1d95;
+    }
+
+
+    /* =========================
+       DATE CARD
+    ========================== */
+
+    .date-card {
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 17px;
+
+        padding: 20px;
+
+        margin-bottom: 22px;
+
+        box-shadow:
+            0 6px 20px rgba(15, 23, 42, 0.035);
+    }
+
+
+    .date-label {
+        display: block;
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        color: #374151;
+
+        margin-bottom: 8px;
+    }
+
+
+    /* =========================
+       FORM CONTROL
+    ========================== */
+
+    .form-control {
+        width: 100%;
+
+        box-sizing: border-box;
+
+        padding: 12px 14px;
+
+        border: 1px solid #d1d5db;
+
+        border-radius: 11px;
+
+        background: #ffffff;
+
+        font-size: 14px;
+
+        color: #111827;
+
+        outline: none;
+
+        transition: 0.2s;
+    }
+
+
+    .form-control:focus {
+        border-color: #8b5cf6;
+
+        box-shadow:
+            0 0 0 4px rgba(139, 92, 246, 0.10);
+    }
+
+
+    /* =========================
+       EXPENSE PANEL
+    ========================== */
+
+    .expense-panel {
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 20px;
+
+        padding: 22px;
+
+        box-shadow:
+            0 8px 25px rgba(15, 23, 42, 0.04);
+    }
+
+
+    .panel-heading {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        gap: 15px;
+
+        margin-bottom: 19px;
+    }
+
+
+    .panel-title {
+        font-size: 18px;
+
+        font-weight: 700;
+
+        color: #111827;
+    }
+
+
+    .panel-description {
+        margin-top: 4px;
+
+        font-size: 13px;
+
+        color: #6b7280;
+    }
+
+
+    /* =========================
+       TABLE HEADER
+    ========================== */
+
+    .expense-list-header {
+        display: grid;
+
+        grid-template-columns:
+            1.25fr
+            1.1fr
+            1.35fr
+            1.45fr;
+
+        gap: 14px;
+
+        padding: 12px 16px;
+
+        background: #f8fafc;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 12px;
+
+        margin-bottom: 10px;
+    }
+
+
+    .expense-list-header div {
+        font-size: 10px;
+
+        font-weight: 800;
+
+        color: #64748b;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.6px;
+    }
+
+
+    /* =========================
+       EXPENSE ROW
+    ========================== */
+
+    .expense-row {
+        display: grid;
+
+        grid-template-columns:
+            1.25fr
+            1.1fr
+            1.35fr
+            1.45fr;
+
+        gap: 14px;
+
+        align-items: center;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 15px;
+
+        padding: 15px 16px;
+
+        margin-bottom: 10px;
+
+        transition: all 0.2s ease;
+    }
+
+
+    .expense-row:hover {
+        border-color: #c4b5fd;
+
+        box-shadow:
+            0 7px 20px rgba(124, 58, 237, 0.07);
+
+        transform: translateY(-1px);
+    }
+
+
+    /* =========================
+       EXPENSE HEAD
+    ========================== */
+
+    .expense-head-cell {
+        display: flex;
+
+        align-items: center;
+
+        gap: 11px;
+    }
+
+
+    .expense-icon {
+        width: 39px;
+        height: 39px;
+
+        border-radius: 11px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        background: #f3e8ff;
+
+        color: #7c3aed;
+
+        font-size: 17px;
+
+        flex-shrink: 0;
+    }
+
+
+    .expense-head-name {
+        font-size: 14px;
+
+        font-weight: 700;
+
+        color: #1f2937;
+    }
+
+
+    /* =========================
+       BRANCH
+    ========================== */
+
+    .branch-name {
+        font-size: 14px;
+
+        font-weight: 700;
+
+        color: #1f2937;
+    }
+
+
+    .branch-subtext {
+        font-size: 11px;
+
+        color: #9ca3af;
+
+        margin-top: 3px;
+    }
+
+
+    /* =========================
+       INPUT
+    ========================== */
+
+    .amount-input {
+        font-weight: 700;
+    }
+
+
+    .remark-input {
+        min-height: 46px;
+
+        resize: vertical;
+    }
+
+
+    /* =========================
+       VEHICLE
+    ========================== */
+
+    .vehicle-section {
+        background: #f8fafc;
+
+        border: 1px dashed #cbd5e1;
+
+        border-radius: 12px;
+
+        padding: 12px;
+    }
+
+
+    .vehicle-label {
+        display: block;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        color: #475569;
+
+        margin-bottom: 7px;
+    }
+
+
+    .vehicle-details {
+        display: none;
+
+        margin-top: 10px;
+
+        background: #ffffff;
+
+        border: 1px solid #e2e8f0;
+
+        border-radius: 10px;
+
+        padding: 11px;
+    }
+
+
+    .vehicle-details.active {
+        display: block;
+    }
+
+
+    .vehicle-detail-title {
+        font-size: 11px;
+
+        font-weight: 700;
+
+        color: #334155;
+
+        margin-bottom: 6px;
+    }
+
+
+    .vehicle-detail-text {
+        font-size: 11px;
+
+        line-height: 1.7;
+
+        color: #64748b;
+
+        white-space: pre-line;
+    }
+
+
+    /* =========================
+       EMPTY STATE
+    ========================== */
+
+    .empty-state {
+        background: #ffffff;
+
+        border: 1px dashed #cbd5e1;
+
+        border-radius: 18px;
+
+        padding: 48px 20px;
+
+        text-align: center;
+    }
+
+
+    .empty-icon {
+        font-size: 38px;
+
+        color: #a78bfa;
+
+        margin-bottom: 12px;
+    }
+
+
+    .empty-title {
+        font-size: 17px;
+
+        font-weight: 700;
+
+        color: #334155;
+
+        margin-bottom: 5px;
+    }
+
+
+    .empty-text {
+        font-size: 13px;
+
+        color: #94a3b8;
+    }
+
+
+    /* =========================
+       BUTTONS
+    ========================== */
+
+    .action-bar {
+        display: flex;
+
+        justify-content: flex-end;
+
+        gap: 10px;
+
+        margin-top: 22px;
+    }
+
+
+    .btn {
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 8px;
+
+        border: none;
+
+        border-radius: 11px;
+
+        padding: 12px 21px;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        text-decoration: none;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+    }
+
+
+    .btn-cancel {
+        background: #f1f5f9;
+
+        color: #475569;
+    }
+
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+    }
+
+
+    .btn-save {
+        background: #7c3aed;
+
+        color: #ffffff;
+    }
+
+
+    .btn-save:hover {
+        background: #6d28d9;
+
+        box-shadow:
+            0 7px 17px rgba(124, 58, 237, 0.25);
+
+        transform: translateY(-1px);
+    }
+
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 1000px) {
+
+        .expense-list-header {
+            display: none;
+        }
+
+        .expense-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+
+    @media (max-width: 650px) {
+
+        .expense-page {
+            padding: 25px 0 25px;
+        }
+
+        .page-title {
+            font-size: 23px;
+        }
+
+        .selector-card,
+        .expense-panel,
+        .date-card {
+            padding: 16px;
+        }
+
+        .expense-row {
+            grid-template-columns: 1fr;
+        }
+
+        .action-bar {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+
+</style>
+
+
+<div class="expense-page">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header">
+
+        <div class="page-title">
+            {{ title|default:"Add Expense" }}
+        </div>
+
+        <div class="page-subtitle">
+            Select the entry type and enter your expense details.
+        </div>
+
     </div>
+
+
+    <!-- =====================================================
+         SELECTOR CARD
+    ====================================================== -->
+
+    <div class="selector-card">
+
+
+        <div class="selector-header">
+
+            <div class="selector-header-icon">
+                <i class="ph ph-faders"></i>
+            </div>
+
+            <div>
+
+                <div class="selector-header-title">
+                    Expense Entry
+                </div>
+
+                <div class="selector-header-subtitle">
+                    Choose Branch or Expense Head
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FIRST DROPDOWN
+        ================================================== -->
+
+        <div class="selector-group">
+
+            <label class="selector-label"
+                   for="entry_type">
+
+                Select Entry Type
+
+            </label>
+
+
+            <div class="custom-select-wrap">
+
+                <div class="custom-select-icon">
+
+                    <i class="ph ph-list"></i>
+
+                </div>
+
+
+                <div class="custom-select-arrow">
+
+                    <i class="ph ph-caret-down"></i>
+
+                </div>
+
+
+                <select id="entry_type"
+                        class="custom-select"
+                        required>
+
+
+                    <option value=""
+                            disabled
+                            {% if not entry_mode %}
+                                selected
+                            {% endif %}>
+
+                        Select Entry Type
+
+                    </option>
+
+
+                    <option value="branch"
+                            {% if entry_mode == 'branch' %}
+                                selected
+                            {% endif %}>
+
+                        Branch
+
+                    </option>
+
+
+                    <option value="expense_head"
+                            {% if entry_mode == 'expense_head' %}
+                                selected
+                            {% endif %}>
+
+                        Expense Head
+
+                    </option>
+
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SECOND DROPDOWN - BRANCH
+        ================================================== -->
+
+        <div id="branch_selector_box"
+             class="selector-group second-selector"
+             style="{% if entry_mode == 'branch' %}display:block;{% else %}display:none;{% endif %}">
+
+
+            <label class="selector-label"
+                   for="branch_selector">
+
+                Select Branch
+
+            </label>
+
+
+            <div class="custom-select-wrap">
+
+
+                <div class="custom-select-icon">
+
+                    <i class="ph ph-buildings"></i>
+
+                </div>
+
+
+                <div class="custom-select-arrow">
+
+                    <i class="ph ph-caret-down"></i>
+
+                </div>
+
+
+                <select id="branch_selector"
+                        class="custom-select">
+
+
+                    <option value=""
+                            disabled
+                            {% if not selected_branch %}
+                                selected
+                            {% endif %}>
+
+                        Select Branch
+
+                    </option>
+
+
+                    {% for branch in branches %}
+
+                        <option value="{{ branch.id }}"
+                            {% if selected_branch and selected_branch.id == branch.id %}
+                                selected
+                            {% endif %}>
+
+                            {{ branch.name }}
+
+                        </option>
+
+                    {% endfor %}
+
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SECOND DROPDOWN - EXPENSE HEAD
+        ================================================== -->
+
+        <div id="expense_head_selector_box"
+             class="selector-group second-selector"
+             style="{% if entry_mode == 'expense_head' %}display:block;{% else %}display:none;{% endif %}">
+
+
+            <label class="selector-label"
+                   for="expense_head_selector">
+
+                Select Expense Head
+
+            </label>
+
+
+            <div class="custom-select-wrap">
+
+
+                <div class="custom-select-icon">
+
+                    <i class="ph ph-receipt"></i>
+
+                </div>
+
+
+                <div class="custom-select-arrow">
+
+                    <i class="ph ph-caret-down"></i>
+
+                </div>
+
+
+                <select id="expense_head_selector"
+                        class="custom-select">
+
+
+                    <option value=""
+                            disabled
+                            {% if not selected_expense_head %}
+                                selected
+                            {% endif %}>
+
+                        Select Expense Head
+
+                    </option>
+
+
+                    {% for head in expense_heads %}
+
+                        <option value="{{ head.id }}"
+                            {% if selected_expense_head and selected_expense_head.id == head.id %}
+                                selected
+                            {% endif %}>
+
+                            {{ head.name }}
+
+                        </option>
+
+                    {% endfor %}
+
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BRANCH MODE
+    ====================================================== -->
+
+    {% if entry_mode == 'branch' and selected_branch %}
+
 
     <form method="POST">
 
         {% csrf_token %}
 
 
-        <!-- Branch -->
-        <div class="form-group">
-
-            <label>
-                Branch *
-            </label>
-
-            <select
-                name="branch"
-                id="branch"
-                required
-            >
-
-                <option
-                    value=""
-                    disabled
-                    {% if not expense %}selected{% endif %}
-                >
-                    Select Branch
-                </option>
-
-                {% for branch in branches %}
-
-                <option
-                    value="{{ branch.id }}"
-                    {% if expense and expense.branch_id == branch.id %}
-                        selected
-                    {% endif %}
-                >
-                    {{ branch.name }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
-        </div>
+        <input type="hidden"
+               name="entry_mode"
+               value="branch">
 
 
-        <!-- Expense Head -->
-        <div class="form-group">
-
-            <label>
-                Expense Head *
-            </label>
-
-            <select
-                name="expense_head"
-                id="expense_head"
-                required
-                {% if not expense and not request.POST.branch %}
-                    disabled
-                {% endif %}
-            >
-
-                <option
-                    value=""
-                    disabled
-                    {% if not expense %}selected{% endif %}
-                >
-                    Select Expense Head
-                </option>
-
-                {% for head in expense_heads %}
-
-                <option
-                    value="{{ head.id }}"
-                    {% if expense and expense.expense_head_id == head.id %}
-                        selected
-                    {% endif %}
-                >
-                    {{ head.name }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
-        </div>
+        <input type="hidden"
+               name="branch_id"
+               value="{{ selected_branch.id }}">
 
 
-        <!-- Date -->
-        <div class="form-group">
+        <!-- SELECTED BRANCH -->
 
-            <label>
-                Date *
-            </label>
+        <div class="selection-card">
 
-            <input
-                type="date"
-                name="expense_date"
-                value="{% if expense %}{{ expense.expense_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}"
-                required
-            >
+            <div class="selection-icon">
 
-        </div>
-
-
-        <!-- Vehicle Section -->
-        <div
-            id="vehicle-section"
-            style="display: none;"
-        >
-
-            <div class="form-group">
-
-                <label>
-                    Vehicle *
-                </label>
-
-                <select
-                    name="vehicle"
-                    id="vehicle"
-                >
-
-                    <option
-                        value=""
-                        disabled
-                        selected
-                    >
-                        Select Vehicle
-                    </option>
-
-                    {% for vehicle in vehicles %}
-
-                    <option
-                        value="{{ vehicle.id }}"
-                        data-branch="{{ vehicle.branch_id }}"
-                        data-number="{{ vehicle.vehicle_number }}"
-                        data-type="{{ vehicle.vehicle_type }}"
-                        data-branch-name="{{ vehicle.branch.name }}"
-                        data-driver="{{ vehicle.driver_name }}"
-                        data-phone="{{ vehicle.driver_phone }}"
-                    >
-                        {{ vehicle.vehicle_number }}
-                    </option>
-
-                    {% endfor %}
-
-                </select>
+                <i class="ph ph-buildings"></i>
 
             </div>
 
 
-            <!-- Vehicle Details -->
-            <div
-                id="vehicle-details"
-                style="
-                    display: none;
-                    margin: 15px 0;
-                    padding: 16px;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 10px;
-                    background: #f8fafc;
-                "
-            >
+            <div>
 
-                <h4
-                    style="
-                        margin-bottom: 14px;
-                        color: #0f172a;
-                        font-size: 0.95rem;
-                        font-weight: 600;
-                    "
-                >
-                    Vehicle Details
-                </h4>
+                <div class="selection-title">
+                    Selected Branch
+                </div>
+
+                <div class="selection-name">
+                    {{ selected_branch.name }}
+                </div>
+
+            </div>
+
+        </div>
 
 
-                <div
-                    style="
-                        display: grid;
-                        grid-template-columns: repeat(2, minmax(0, 1fr));
-                        gap: 12px;
-                    "
-                >
+        <!-- DATE -->
 
-                    <div>
+        <div class="date-card">
 
-                        <strong>
-                            Vehicle Number
-                        </strong>
+            <label class="date-label"
+                   for="expense_date">
 
-                        <div id="vehicle-number">
-                            -
-                        </div>
+                Expense Date
+
+            </label>
+
+
+            <input type="date"
+                   id="expense_date"
+                   name="expense_date"
+                   class="form-control"
+                   value="{{ today|date:'Y-m-d' }}"
+                   required>
+
+        </div>
+
+
+        <!-- EXPENSE PANEL -->
+
+        <div class="expense-panel">
+
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <div class="panel-title">
+                        Expense Details
+                    </div>
+
+                    <div class="panel-description">
+                        Add amount and remark for each expense head.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- HEADER -->
+
+            <div class="expense-list-header">
+
+                <div>
+                    Expense Head
+                </div>
+
+                <div>
+                    Amount
+                </div>
+
+                <div>
+                    Remark
+                </div>
+
+                <div>
+                    Additional Details
+                </div>
+
+            </div>
+
+
+            <!-- ROWS -->
+
+            {% for row in branch_expense_rows %}
+
+
+            <div class="expense-row">
+
+
+                <!-- EXPENSE HEAD -->
+
+                <div class="expense-head-cell">
+
+                    <div class="expense-icon">
+
+                        <i class="ph ph-receipt"></i>
 
                     </div>
 
 
-                    <div>
+                    <div class="expense-head-name">
 
-                        <strong>
-                            Vehicle Type
-                        </strong>
+                        {{ row.expense_head.name }}
 
-                        <div id="vehicle-type">
-                            -
+                    </div>
+
+                </div>
+
+
+                <!-- AMOUNT -->
+
+                <div>
+
+                    <input type="number"
+                           name="amount_{{ row.expense_head.id }}"
+                           class="form-control amount-input"
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0">
+
+                </div>
+
+
+                <!-- REMARK -->
+
+                <div>
+
+                    <textarea
+                        name="remark_{{ row.expense_head.id }}"
+                        class="form-control remark-input"
+                        placeholder="Enter remark..."></textarea>
+
+                </div>
+
+
+                <!-- ADDITIONAL DETAILS -->
+
+                <div>
+
+
+                    {% if row.expense_head.name|lower == "vehicle expense" %}
+
+
+                        <div class="vehicle-section">
+
+
+                            <label class="vehicle-label">
+
+                                Select Vehicle
+
+                            </label>
+
+
+                            <select
+                                name="vehicle_{{ row.expense_head.id }}"
+                                class="form-control vehicle-select"
+                                data-details-target="vehicle-details-{{ row.expense_head.id }}">
+
+
+                                <option value="">
+
+                                    Select Vehicle
+
+                                </option>
+
+
+                                {% for vehicle in row.vehicle_list %}
+
+
+                                    <option
+                                        value="{{ vehicle.id }}"
+                                        data-number="{{ vehicle.vehicle_number }}"
+                                        data-type="{{ vehicle.vehicle_type }}"
+                                        data-driver="{{ vehicle.driver_name }}"
+                                        data-phone="{{ vehicle.driver_phone }}"
+                                        data-branch="{{ vehicle.branch.name }}">
+
+                                        {{ vehicle.vehicle_number }}
+
+                                    </option>
+
+
+                                {% endfor %}
+
+
+                            </select>
+
+
+                            <div
+                                id="vehicle-details-{{ row.expense_head.id }}"
+                                class="vehicle-details">
+
+
+                                <div class="vehicle-detail-title">
+
+                                    Vehicle Details
+
+                                </div>
+
+
+                                <div class="vehicle-detail-text"></div>
+
+
+                            </div>
+
+
                         </div>
+
+
+                    {% else %}
+
+
+                        <div class="branch-subtext">
+
+                            No additional details required
+
+                        </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+            </div>
+
+
+            {% empty %}
+
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+
+                        <i class="ph ph-receipt"></i>
 
                     </div>
 
 
-                    <div>
+                    <div class="empty-title">
 
-                        <strong>
-                            Branch
-                        </strong>
-
-                        <div id="vehicle-branch">
-                            -
-                        </div>
+                        No Expense Heads Found
 
                     </div>
 
 
-                    <div>
+                    <div class="empty-text">
 
-                        <strong>
-                            Driver Name
-                        </strong>
-
-                        <div id="vehicle-driver">
-                            -
-                        </div>
+                        Please create an expense head before adding expenses.
 
                     </div>
 
+                </div>
 
-                    <div>
 
-                        <strong>
-                            Driver Phone
-                        </strong>
+            {% endfor %}
 
-                        <div id="vehicle-phone">
-                            -
-                        </div>
 
-                    </div>
+        </div>
+
+
+        <!-- ACTION BUTTONS -->
+
+        <div class="action-bar">
+
+
+            <a href="{% url 'expense_list' %}"
+               class="btn btn-cancel">
+
+                <i class="ph ph-x"></i>
+
+                Cancel
+
+            </a>
+
+
+            <button type="submit"
+                    class="btn btn-save">
+
+                <i class="ph ph-floppy-disk"></i>
+
+                Save Expenses
+
+            </button>
+
+
+        </div>
+
+
+    </form>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         EXPENSE HEAD MODE
+    ====================================================== -->
+
+    {% if entry_mode == 'expense_head' and selected_expense_head %}
+
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+
+        <input type="hidden"
+               name="entry_mode"
+               value="expense_head">
+
+
+        <input type="hidden"
+               name="expense_head_id"
+               value="{{ selected_expense_head.id }}">
+
+
+        <!-- SELECTED EXPENSE HEAD -->
+
+        <div class="selection-card">
+
+
+            <div class="selection-icon">
+
+                <i class="ph ph-receipt"></i>
+
+            </div>
+
+
+            <div>
+
+                <div class="selection-title">
+
+                    Selected Expense Head
+
+                </div>
+
+
+                <div class="selection-name">
+
+                    {{ selected_expense_head.name }}
 
                 </div>
 
@@ -267,331 +1515,689 @@
         </div>
 
 
-        <!-- Amount -->
-        <div class="form-group">
+        <!-- DATE -->
 
-            <label>
-                Amount *
+        <div class="date-card">
+
+
+            <label class="date-label"
+                   for="expense_date_head">
+
+                Expense Date
+
             </label>
 
-            <input
-                type="number"
-                name="amount"
-                step="0.01"
-                min="0"
-                value="{% if expense %}{{ expense.amount }}{% endif %}"
-                placeholder="Enter amount"
-                required
-            >
+
+            <input type="date"
+                   id="expense_date_head"
+                   name="expense_date"
+                   class="form-control"
+                   value="{{ today|date:'Y-m-d' }}"
+                   required>
+
 
         </div>
 
 
-        <!-- Remarks -->
-        <div class="form-group">
+        <!-- BRANCH EXPENSE PANEL -->
 
-            <label>
-                Remarks
-            </label>
+        <div class="expense-panel">
 
-            <textarea
-                name="description"
-                rows="4"
-                placeholder="Enter remarks"
-            >{% if expense %}{{ expense.description }}{% endif %}</textarea>
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <div class="panel-title">
+
+                        Branch Expense Details
+
+                    </div>
+
+
+                    <div class="panel-description">
+
+                        Add amount and remark for each branch.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- HEADER -->
+
+            <div class="expense-list-header">
+
+                <div>
+                    Branch
+                </div>
+
+                <div>
+                    Amount
+                </div>
+
+                <div>
+                    Remark
+                </div>
+
+                <div>
+                    Additional Details
+                </div>
+
+            </div>
+
+
+            <!-- BRANCH ROWS -->
+
+            {% for row in branch_rows %}
+
+
+            <div class="expense-row">
+
+
+                <!-- BRANCH -->
+
+                <div class="expense-head-cell">
+
+
+                    <div class="expense-icon">
+
+                        <i class="ph ph-buildings"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="branch-name">
+
+                            {{ row.branch.name }}
+
+                        </div>
+
+
+                        <div class="branch-subtext">
+
+                            Branch Expense
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- AMOUNT -->
+
+                <div>
+
+                    <input type="number"
+                           name="branch_amount_{{ row.branch.id }}"
+                           class="form-control amount-input"
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0">
+
+                </div>
+
+
+                <!-- REMARK -->
+
+                <div>
+
+                    <textarea
+                        name="branch_remark_{{ row.branch.id }}"
+                        class="form-control remark-input"
+                        placeholder="Enter remark..."></textarea>
+
+                </div>
+
+
+                <!-- VEHICLE -->
+
+                <div>
+
+
+                    {% if selected_expense_head.name|lower == "vehicle expense" %}
+
+
+                        <div class="vehicle-section">
+
+
+                            <label class="vehicle-label">
+
+                                Select Vehicle
+
+                            </label>
+
+
+                            <select
+                                name="branch_vehicle_{{ row.branch.id }}"
+                                class="form-control vehicle-select"
+                                data-details-target="branch-vehicle-details-{{ row.branch.id }}">
+
+
+                                <option value="">
+
+                                    Select Vehicle
+
+                                </option>
+
+
+                                {% for vehicle in row.vehicles %}
+
+
+                                    <option
+                                        value="{{ vehicle.id }}"
+                                        data-number="{{ vehicle.vehicle_number }}"
+                                        data-type="{{ vehicle.vehicle_type }}"
+                                        data-driver="{{ vehicle.driver_name }}"
+                                        data-phone="{{ vehicle.driver_phone }}"
+                                        data-branch="{{ vehicle.branch.name }}">
+
+                                        {{ vehicle.vehicle_number }}
+
+                                    </option>
+
+
+                                {% endfor %}
+
+
+                            </select>
+
+
+                            <div
+                                id="branch-vehicle-details-{{ row.branch.id }}"
+                                class="vehicle-details">
+
+
+                                <div class="vehicle-detail-title">
+
+                                    Vehicle Details
+
+                                </div>
+
+
+                                <div class="vehicle-detail-text"></div>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    {% else %}
+
+
+                        <div class="branch-subtext">
+
+                            No additional details required
+
+                        </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </div>
+
+
+            {% empty %}
+
+
+                <div class="empty-state">
+
+
+                    <div class="empty-icon">
+
+                        <i class="ph ph-buildings"></i>
+
+                    </div>
+
+
+                    <div class="empty-title">
+
+                        No Branches Found
+
+                    </div>
+
+
+                    <div class="empty-text">
+
+                        Please create an active branch before adding expenses.
+
+                    </div>
+
+
+                </div>
+
+
+            {% endfor %}
+
 
         </div>
 
 
-        <!-- Actions -->
-        <div class="form-actions">
+        <!-- ACTIONS -->
 
-            <a
-                href="{% url 'expense_list' %}"
-                class="btn-secondary"
-            >
+        <div class="action-bar">
+
+
+            <a href="{% url 'expense_list' %}"
+               class="btn btn-cancel">
+
+                <i class="ph ph-x"></i>
+
                 Cancel
+
             </a>
 
-            <button
-                type="submit"
-                class="btn-success"
-            >
-                Save Expense
+
+            <button type="submit"
+                    class="btn btn-save">
+
+                <i class="ph ph-floppy-disk"></i>
+
+                Save Expenses
+
             </button>
+
 
         </div>
 
+
     </form>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         INITIAL STATE
+    ====================================================== -->
+
+    {% if not entry_mode %}
+
+
+    <div class="empty-state">
+
+
+        <div class="empty-icon">
+
+            <i class="ph ph-faders"></i>
+
+        </div>
+
+
+        <div class="empty-title">
+
+            Select an Entry Type
+
+        </div>
+
+
+        <div class="empty-text">
+
+            Choose Branch or Expense Head from the dropdown above.
+
+        </div>
+
+
+    </div>
+
+
+    {% endif %}
+
 
 </div>
 
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
-
-    const branchSelect = document.getElementById("branch");
-    const expenseHeadSelect = document.getElementById("expense_head");
-
-    const vehicleSection = document.getElementById("vehicle-section");
-    const vehicleSelect = document.getElementById("vehicle");
-    const vehicleDetails = document.getElementById("vehicle-details");
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
 
-    /* =====================================================
-       ENABLE / DISABLE EXPENSE HEAD
-       ===================================================== */
+        /* =================================================
+           ELEMENTS
+        ================================================== */
 
-    function updateExpenseHeadState() {
-
-        if (branchSelect.value) {
-
-            expenseHeadSelect.disabled = false;
-
-        } else {
-
-            expenseHeadSelect.disabled = true;
-            expenseHeadSelect.value = "";
-
-        }
-
-    }
+        const entryType =
+            document.getElementById("entry_type");
 
 
-    /* =====================================================
-       FILTER VEHICLES BY BRANCH
-       ===================================================== */
-
-    function filterVehicles() {
-
-        const selectedBranch = branchSelect.value;
-
-        let selectedVehicle = vehicleSelect.value;
-
-        let selectedVehicleStillAvailable = false;
+        const branchBox =
+            document.getElementById(
+                "branch_selector_box"
+            );
 
 
-        Array.from(
-            vehicleSelect.options
-        ).forEach(function (option, index) {
-
-            if (index === 0) {
-
-                option.style.display = "";
-
-                return;
-
-            }
+        const expenseHeadBox =
+            document.getElementById(
+                "expense_head_selector_box"
+            );
 
 
-            const vehicleBranch =
-                option.dataset.branch;
+        const branchSelector =
+            document.getElementById(
+                "branch_selector"
+            );
 
 
-            if (
-                !selectedBranch ||
-                vehicleBranch === selectedBranch
-            ) {
+        const expenseHeadSelector =
+            document.getElementById(
+                "expense_head_selector"
+            );
 
-                option.style.display = "";
 
-                if (
-                    option.value === selectedVehicle
-                ) {
+        /* =================================================
+           ENTRY TYPE
+        ================================================== */
 
-                    selectedVehicleStillAvailable = true;
+        if (entryType) {
+
+
+            entryType.addEventListener(
+                "change",
+                function () {
+
+
+                    const selectedType =
+                        this.value;
+
+
+                    /* Hide Branch */
+
+                    if (branchBox) {
+
+                        branchBox.style.display =
+                            "none";
+
+                    }
+
+
+                    /* Hide Expense Head */
+
+                    if (expenseHeadBox) {
+
+                        expenseHeadBox.style.display =
+                            "none";
+
+                    }
+
+
+                    /* Reset */
+
+                    if (branchSelector) {
+
+                        branchSelector.selectedIndex =
+                            0;
+
+                    }
+
+
+                    if (expenseHeadSelector) {
+
+                        expenseHeadSelector.selectedIndex =
+                            0;
+
+                    }
+
+
+                    /* Branch */
+
+                    if (
+                        selectedType ===
+                        "branch"
+                    ) {
+
+                        if (branchBox) {
+
+                            branchBox.style.display =
+                                "block";
+
+                        }
+
+                    }
+
+
+                    /* Expense Head */
+
+                    if (
+                        selectedType ===
+                        "expense_head"
+                    ) {
+
+                        if (expenseHeadBox) {
+
+                            expenseHeadBox.style.display =
+                                "block";
+
+                        }
+
+                    }
 
                 }
+            );
 
-            } else {
+        }
 
-                option.style.display = "none";
 
-                if (
-                    option.value === selectedVehicle
-                ) {
+        /* =================================================
+           BRANCH
+        ================================================== */
 
-                    selectedVehicle = "";
+        if (branchSelector) {
+
+
+            branchSelector.addEventListener(
+                "change",
+                function () {
+
+
+                    const branchId =
+                        this.value;
+
+
+                    if (!branchId) {
+
+                        return;
+
+                    }
+
+
+                    window.location.href =
+                        "{% url 'expense_entry' %}" +
+                        "?branch_id=" +
+                        branchId +
+                        "&entry_mode=branch";
 
                 }
+            );
+
+        }
+
+
+        /* =================================================
+           EXPENSE HEAD
+        ================================================== */
+
+        if (expenseHeadSelector) {
+
+
+            expenseHeadSelector.addEventListener(
+                "change",
+                function () {
+
+
+                    const expenseHeadId =
+                        this.value;
+
+
+                    if (!expenseHeadId) {
+
+                        return;
+
+                    }
+
+
+                    window.location.href =
+                        "{% url 'expense_entry' %}" +
+                        "?expense_head_id=" +
+                        expenseHeadId +
+                        "&entry_mode=expense_head";
+
+                }
+            );
+
+        }
+
+
+        /* =================================================
+           VEHICLE DETAILS
+        ================================================== */
+
+        const vehicleSelects =
+            document.querySelectorAll(
+                ".vehicle-select"
+            );
+
+
+        vehicleSelects.forEach(
+            function (select) {
+
+
+                select.addEventListener(
+                    "change",
+                    function () {
+
+
+                        const option =
+                            this.options[
+                                this.selectedIndex
+                            ];
+
+
+                        const targetId =
+                            this.getAttribute(
+                                "data-details-target"
+                            );
+
+
+                        const target =
+                            document.getElementById(
+                                targetId
+                            );
+
+
+                        if (!target) {
+
+                            return;
+
+                        }
+
+
+                        const detailText =
+                            target.querySelector(
+                                ".vehicle-detail-text"
+                            );
+
+
+                        if (!this.value) {
+
+
+                            target.classList.remove(
+                                "active"
+                            );
+
+
+                            if (detailText) {
+
+                                detailText.textContent =
+                                    "";
+
+                            }
+
+
+                            return;
+
+                        }
+
+
+                        const vehicleNumber =
+                            option.getAttribute(
+                                "data-number"
+                            ) || "";
+
+
+                        const vehicleType =
+                            option.getAttribute(
+                                "data-type"
+                            ) || "";
+
+
+                        const driverName =
+                            option.getAttribute(
+                                "data-driver"
+                            ) || "";
+
+
+                        const driverPhone =
+                            option.getAttribute(
+                                "data-phone"
+                            ) || "";
+
+
+                        const branchName =
+                            option.getAttribute(
+                                "data-branch"
+                            ) || "";
+
+
+                        if (detailText) {
+
+
+                            detailText.textContent =
+                                "Vehicle Number: " +
+                                vehicleNumber +
+                                "\n" +
+
+                                "Vehicle Type: " +
+                                vehicleType +
+                                "\n" +
+
+                                "Branch: " +
+                                branchName +
+                                "\n" +
+
+                                "Driver Name: " +
+                                driverName +
+                                "\n" +
+
+                                "Driver Phone: " +
+                                driverPhone;
+
+                        }
+
+
+                        target.classList.add(
+                            "active"
+                        );
+
+                    }
+                );
 
             }
-
-        });
-
-
-        if (
-            !selectedVehicleStillAvailable
-        ) {
-
-            vehicleSelect.value = "";
-
-        }
-
-
-        showVehicleDetails();
+        );
 
     }
-
-
-    /* =====================================================
-       EXPENSE HEAD CHECK
-       ===================================================== */
-
-    function checkExpenseHead() {
-
-        const selectedOption =
-            expenseHeadSelect.options[
-                expenseHeadSelect.selectedIndex
-            ];
-
-
-        if (
-            !selectedOption ||
-            !selectedOption.value
-        ) {
-
-            vehicleSection.style.display = "none";
-
-            vehicleSelect.value = "";
-
-            vehicleDetails.style.display = "none";
-
-            return;
-
-        }
-
-
-        const expenseHeadName =
-            selectedOption.text
-                .trim()
-                .toLowerCase();
-
-
-        if (
-            expenseHeadName === "vehicle expense"
-        ) {
-
-            vehicleSection.style.display = "block";
-
-            filterVehicles();
-
-        } else {
-
-            vehicleSection.style.display = "none";
-
-            vehicleSelect.value = "";
-
-            vehicleDetails.style.display = "none";
-
-        }
-
-    }
-
-
-    /* =====================================================
-       SHOW VEHICLE DETAILS
-       ===================================================== */
-
-    function showVehicleDetails() {
-
-        const selectedOption =
-            vehicleSelect.options[
-                vehicleSelect.selectedIndex
-            ];
-
-
-        if (
-            !selectedOption ||
-            !selectedOption.value
-        ) {
-
-            vehicleDetails.style.display = "none";
-
-            return;
-
-        }
-
-
-        document.getElementById(
-            "vehicle-number"
-        ).textContent =
-            selectedOption.dataset.number || "-";
-
-
-        document.getElementById(
-            "vehicle-type"
-        ).textContent =
-            selectedOption.dataset.type || "-";
-
-
-        document.getElementById(
-            "vehicle-branch"
-        ).textContent =
-            selectedOption.dataset.branchName || "-";
-
-
-        document.getElementById(
-            "vehicle-driver"
-        ).textContent =
-            selectedOption.dataset.driver || "-";
-
-
-        document.getElementById(
-            "vehicle-phone"
-        ).textContent =
-            selectedOption.dataset.phone || "-";
-
-
-        vehicleDetails.style.display = "block";
-
-    }
-
-
-    /* =====================================================
-       EVENTS
-       ===================================================== */
-
-    branchSelect.addEventListener(
-        "change",
-        function () {
-
-            updateExpenseHeadState();
-
-            if (
-                vehicleSection.style.display !== "none"
-            ) {
-
-                filterVehicles();
-
-            }
-
-        }
-    );
-
-
-    expenseHeadSelect.addEventListener(
-        "change",
-        checkExpenseHead
-    );
-
-
-    vehicleSelect.addEventListener(
-        "change",
-        showVehicleDetails
-    );
-
-
-    /* =====================================================
-       INITIAL STATE
-       ===================================================== */
-
-    updateExpenseHeadState();
-
-    checkExpenseHead();
-
-});
+);
 
 </script>
 

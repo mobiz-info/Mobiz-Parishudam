@@ -509,115 +509,181 @@ def expense_vehicle_details_view(request):
         'selected_branch_id': branch_id or '',
     })
 
-# --- EXPENSE ENTRY ---
 @login_required
 def expense_entry_view(request):
     user_profile = getattr(request.user, 'profile', None)
+    is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
 
-    is_admin = (
-        user_profile.is_admin
-        if user_profile
-        else request.user.is_superuser
-    )
+    today = timezone.now().date()
 
-    branches = Branch.objects.filter(
-        status='active'
-    )
+    # ---------------------------------
+    # Active branches
+    # ---------------------------------
+
+    if not is_admin and user_profile and user_profile.branch:
+        branches = Branch.objects.filter(
+            id=user_profile.branch.id,
+            status='active'
+        )
+    else:
+        branches = Branch.objects.filter(status='active')
+
+    # ---------------------------------
+    # Expense heads
+    # ---------------------------------
 
     expense_heads = ExpenseHead.objects.all()
 
-    vehicles = Vehicle.objects.select_related(
-        'branch'
-    ).all()
+    # ---------------------------------
+    # Vehicles
+    # ---------------------------------
 
-    # -----------------------------------------------------
-    # Selected Branch
-    # -----------------------------------------------------
+    vehicles = Vehicle.objects.select_related('branch').all()
 
-    branch_id = request.GET.get('branch_id')
+    # ---------------------------------
+    # GET values
+    # ---------------------------------
+
+    selected_branch_id = request.GET.get('branch_id')
+    selected_expense_head_id = request.GET.get('expense_head_id')
+
+    entry_mode = request.GET.get('entry_mode', '').strip()
 
     selected_branch = None
+    selected_expense_head = None
 
-    if (
-        not is_admin
-        and user_profile
-        and user_profile.branch
-    ):
-        selected_branch = user_profile.branch
+    # ---------------------------------
+    # Selected branch
+    # ---------------------------------
 
-        vehicles = vehicles.filter(
-            branch=user_profile.branch
-        )
+    if selected_branch_id:
 
-    elif branch_id:
+        if not is_admin and user_profile and user_profile.branch:
+
+            if str(selected_branch_id) != str(user_profile.branch.id):
+                messages.error(request, "Permission denied.")
+                return redirect('expense_entry')
 
         selected_branch = Branch.objects.filter(
-            id=branch_id,
+            id=selected_branch_id,
             status='active'
         ).first()
 
-        if selected_branch:
-            vehicles = vehicles.filter(
-                branch=selected_branch
+    # ---------------------------------
+    # Selected expense head
+    # ---------------------------------
+
+    if selected_expense_head_id:
+
+        selected_expense_head = ExpenseHead.objects.filter(
+            id=selected_expense_head_id
+        ).first()
+
+    # ---------------------------------
+    # IMPORTANT
+    # Do NOT auto select Branch
+    # ---------------------------------
+
+    if entry_mode == 'branch' and selected_branch:
+
+        entry_mode = 'branch'
+
+    elif entry_mode == 'expense_head' and selected_expense_head:
+
+        entry_mode = 'expense_head'
+
+    else:
+
+        entry_mode = ''
+
+    # ---------------------------------
+    # Branch mode rows
+    # ---------------------------------
+
+    branch_expense_rows = []
+
+    if entry_mode == 'branch' and selected_branch:
+
+        for head in expense_heads:
+
+            if head.name.strip().lower() == 'vehicle expense':
+
+                vehicle_list = vehicles.filter(
+                    branch=selected_branch
+                )
+
+            else:
+
+                vehicle_list = Vehicle.objects.none()
+
+            branch_expense_rows.append({
+                'expense_head': head,
+                'vehicle_list': vehicle_list
+            })
+
+    # ---------------------------------
+    # Expense head mode rows
+    # ---------------------------------
+
+    branch_rows = []
+
+    if entry_mode == 'expense_head' and selected_expense_head:
+
+        for branch in branches:
+
+            branch_vehicles = vehicles.filter(
+                branch=branch
             )
 
-    # -----------------------------------------------------
+            branch_rows.append({
+                'branch': branch,
+                'vehicles': branch_vehicles
+            })
+
+    # ---------------------------------
     # POST
-    # -----------------------------------------------------
+    # ---------------------------------
 
     if request.method == 'POST':
 
-        branch_id = request.POST.get('branch')
-        expense_date = request.POST.get('expense_date')
-        expense_head_id = request.POST.get('expense_head')
-        vehicle_id = request.POST.get('vehicle')
-        amount = request.POST.get('amount')
-        description = request.POST.get(
-            'description',
-            ''
-        ).strip()
+        post_mode = request.POST.get('entry_mode', '').strip()
 
-        # -------------------------------------------------
-        # Required Fields
-        # -------------------------------------------------
+        expense_date = request.POST.get('expense_date', '').strip()
 
-        if not all([
-            branch_id,
-            expense_date,
-            expense_head_id,
-            amount
-        ]):
+        if not expense_date:
 
             messages.error(
                 request,
-                "Please fill all required fields."
+                "Please select the expense date."
             )
 
-            return render(
-                request,
-                'operations/expense_form.html',
-                {
-                    'branches': branches,
-                    'expense_heads': expense_heads,
-                    'vehicles': vehicles,
-                    'is_admin': is_admin,
-                    'selected_branch': selected_branch,
-                    'title': 'Add Expense',
-                }
-            )
+            return redirect('expense_entry')
 
-        # -------------------------------------------------
-        # Non-admin Branch Protection
-        # -------------------------------------------------
+        saved_count = 0
 
-        if (
-            not is_admin
-            and user_profile
-            and user_profile.branch
-        ):
+        # =========================================
+        # BRANCH MODE
+        # =========================================
 
-            if str(branch_id) != str(
-                user_profile.branch.id
+        if post_mode == 'branch':
+
+            branch_id = request.POST.get('branch_id')
+
+            if not branch_id:
+
+                messages.error(
+                    request,
+                    "Please select a branch."
+                )
+
+                return redirect('expense_entry')
+
+            # Permission check
+            if (
+                not is_admin
+                and user_profile
+                and user_profile.branch
+                and str(branch_id) != str(user_profile.branch.id)
             ):
 
                 messages.error(
@@ -625,118 +691,296 @@ def expense_entry_view(request):
                     "Permission denied."
                 )
 
-                return redirect(
-                    'expense_entry'
+                return redirect('expense_entry')
+
+            branch = get_object_or_404(
+                Branch,
+                id=branch_id,
+                status='active'
+            )
+
+            for head in expense_heads:
+
+                amount = request.POST.get(
+                    f'amount_{head.id}',
+                    ''
+                ).strip()
+
+                remark = request.POST.get(
+                    f'remark_{head.id}',
+                    ''
+                ).strip()
+
+                vehicle_id = request.POST.get(
+                    f'vehicle_{head.id}'
                 )
 
-        # -------------------------------------------------
-        # Vehicle Details
-        # -------------------------------------------------
+                # Nothing entered
+                if not amount and not remark:
 
-        if vehicle_id:
+                    continue
 
-            try:
-
-                vehicle = Vehicle.objects.select_related(
-                    'branch'
-                ).get(
-                    id=vehicle_id
-                )
-
-                # Vehicle must belong to selected branch
-                if str(vehicle.branch_id) != str(
-                    branch_id
-                ):
+                # Amount required
+                if not amount:
 
                     messages.error(
                         request,
-                        "Selected vehicle does not belong to the selected branch."
+                        f"Amount is required for {head.name}."
                     )
 
-                    return render(
-                        request,
-                        'operations/expense_form.html',
-                        {
-                            'branches': branches,
-                            'expense_heads': expense_heads,
-                            'vehicles': vehicles,
-                            'is_admin': is_admin,
-                            'selected_branch': selected_branch,
-                            'title': 'Add Expense',
-                        }
+                    return redirect(
+                        f'/expenses/add/?branch_id={branch.id}&entry_mode=branch'
                     )
 
-                vehicle_details = (
-                    f"Vehicle Number: "
-                    f"{vehicle.vehicle_number}\n"
-                    f"Vehicle Type: "
-                    f"{vehicle.vehicle_type}\n"
-                    f"Branch: "
-                    f"{vehicle.branch.name}\n"
-                    f"Driver Name: "
-                    f"{vehicle.driver_name}\n"
-                    f"Driver Phone: "
-                    f"{vehicle.driver_phone}"
+                description = remark
+
+                # ---------------------------------
+                # Vehicle expense
+                # ---------------------------------
+
+                if (
+                    head.name.strip().lower()
+                    == 'vehicle expense'
+                    and vehicle_id
+                ):
+
+                    try:
+
+                        vehicle = Vehicle.objects.select_related(
+                            'branch'
+                        ).get(
+                            id=vehicle_id,
+                            branch=branch
+                        )
+
+                        vehicle_details = (
+                            f"Vehicle Number: "
+                            f"{vehicle.vehicle_number}\n"
+                            f"Vehicle Type: "
+                            f"{vehicle.vehicle_type}\n"
+                            f"Branch: "
+                            f"{vehicle.branch.name}\n"
+                            f"Driver Name: "
+                            f"{vehicle.driver_name}\n"
+                            f"Driver Phone: "
+                            f"{vehicle.driver_phone}"
+                        )
+
+                        if description:
+
+                            description = (
+                                f"{description}\n\n"
+                                f"{vehicle_details}"
+                            )
+
+                        else:
+
+                            description = vehicle_details
+
+                    except Vehicle.DoesNotExist:
+
+                        messages.error(
+                            request,
+                            "Selected vehicle not found for the selected branch."
+                        )
+
+                        return redirect(
+                            f'/expenses/add/?branch_id={branch.id}&entry_mode=branch'
+                        )
+
+                # ---------------------------------
+                # Save expense
+                # ---------------------------------
+
+                Expense.objects.create(
+                    branch=branch,
+                    staff=request.user,
+                    expense_date=expense_date,
+                    expense_head=head,
+                    amount=amount,
+                    description=description,
+                    created_by=request.user,
+                    updated_by=request.user
                 )
 
-                if description:
+                saved_count += 1
 
-                    description = (
-                        f"{description}\n\n"
-                        f"{vehicle_details}"
-                    )
+        # =========================================
+        # EXPENSE HEAD MODE
+        # =========================================
 
-                else:
+        elif post_mode == 'expense_head':
 
-                    description = vehicle_details
+            expense_head_id = request.POST.get(
+                'expense_head_id'
+            )
 
-            except Vehicle.DoesNotExist:
+            if not expense_head_id:
 
                 messages.error(
                     request,
-                    "Selected vehicle not found."
+                    "Please select an expense head."
                 )
 
-                return render(
-                    request,
-                    'operations/expense_form.html',
-                    {
-                        'branches': branches,
-                        'expense_heads': expense_heads,
-                        'vehicles': vehicles,
-                        'is_admin': is_admin,
-                        'selected_branch': selected_branch,
-                        'title': 'Add Expense',
-                    }
+                return redirect('expense_entry')
+
+            expense_head = get_object_or_404(
+                ExpenseHead,
+                id=expense_head_id
+            )
+
+            for branch in branches:
+
+                # Permission check
+                if (
+                    not is_admin
+                    and user_profile
+                    and user_profile.branch
+                    and branch.id != user_profile.branch.id
+                ):
+
+                    continue
+
+                amount = request.POST.get(
+                    f'branch_amount_{branch.id}',
+                    ''
+                ).strip()
+
+                remark = request.POST.get(
+                    f'branch_remark_{branch.id}',
+                    ''
+                ).strip()
+
+                vehicle_id = request.POST.get(
+                    f'branch_vehicle_{branch.id}'
                 )
 
-        # -------------------------------------------------
-        # Create Expense
-        # -------------------------------------------------
+                # Nothing entered
+                if not amount and not remark:
 
-        Expense.objects.create(
-            branch_id=branch_id,
-            staff=request.user,
-            expense_date=expense_date,
-            expense_head_id=expense_head_id,
-            amount=amount,
-            description=description,
-            created_by=request.user,
-            updated_by=request.user
-        )
+                    continue
 
-        messages.success(
+                # Amount required
+                if not amount:
+
+                    messages.error(
+                        request,
+                        f"Amount is required for {branch.name}."
+                    )
+
+                    return redirect(
+                        f'/expenses/add/?expense_head_id={expense_head.id}&entry_mode=expense_head'
+                    )
+
+                description = remark
+
+                # ---------------------------------
+                # Vehicle expense
+                # ---------------------------------
+
+                if (
+                    expense_head.name.strip().lower()
+                    == 'vehicle expense'
+                    and vehicle_id
+                ):
+
+                    try:
+
+                        vehicle = Vehicle.objects.select_related(
+                            'branch'
+                        ).get(
+                            id=vehicle_id,
+                            branch=branch
+                        )
+
+                        vehicle_details = (
+                            f"Vehicle Number: "
+                            f"{vehicle.vehicle_number}\n"
+                            f"Vehicle Type: "
+                            f"{vehicle.vehicle_type}\n"
+                            f"Branch: "
+                            f"{vehicle.branch.name}\n"
+                            f"Driver Name: "
+                            f"{vehicle.driver_name}\n"
+                            f"Driver Phone: "
+                            f"{vehicle.driver_phone}"
+                        )
+
+                        if description:
+
+                            description = (
+                                f"{description}\n\n"
+                                f"{vehicle_details}"
+                            )
+
+                        else:
+
+                            description = vehicle_details
+
+                    except Vehicle.DoesNotExist:
+
+                        messages.error(
+                            request,
+                            "Selected vehicle not found for the selected branch."
+                        )
+
+                        return redirect(
+                            f'/expenses/add/?expense_head_id={expense_head.id}&entry_mode=expense_head'
+                        )
+
+                # ---------------------------------
+                # Save expense
+                # ---------------------------------
+
+                Expense.objects.create(
+                    branch=branch,
+                    staff=request.user,
+                    expense_date=expense_date,
+                    expense_head=expense_head,
+                    amount=amount,
+                    description=description,
+                    created_by=request.user,
+                    updated_by=request.user
+                )
+
+                saved_count += 1
+
+        # =========================================
+        # INVALID MODE
+        # =========================================
+
+        else:
+
+            messages.error(
+                request,
+                "Please select Branch or Expense Head."
+            )
+
+            return redirect('expense_entry')
+
+        # =========================================
+        # SUCCESS
+        # =========================================
+
+        if saved_count > 0:
+
+            messages.success(
+                request,
+                f"{saved_count} expense record(s) added successfully."
+            )
+
+            return redirect('expense_list')
+
+        messages.warning(
             request,
-            "Expense added successfully."
+            "No expense data entered."
         )
 
-        return redirect(
-            'expense_list'
-        )
+        return redirect('expense_entry')
 
-    # -----------------------------------------------------
-    # GET
-    # -----------------------------------------------------
+    # ---------------------------------
+    # Render
+    # ---------------------------------
 
     return render(
         request,
@@ -747,6 +991,11 @@ def expense_entry_view(request):
             'vehicles': vehicles,
             'is_admin': is_admin,
             'selected_branch': selected_branch,
+            'selected_expense_head': selected_expense_head,
+            'entry_mode': entry_mode,
+            'branch_expense_rows': branch_expense_rows,
+            'branch_rows': branch_rows,
+            'today': today,
             'title': 'Add Expense',
         }
     )
