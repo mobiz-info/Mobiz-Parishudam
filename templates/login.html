@@ -115,6 +115,28 @@
             background: #4338ca;
         }
 
+        .keep-login {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .keep-login input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4f46e5;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .keep-login label {
+            font-size: 0.85rem;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
         .error-message {
             background: #fee2e2;
             color: #b91c1c;
@@ -157,6 +179,11 @@
                     <i class="ph ph-lock-key"></i>
                     <input type="password" name="password" placeholder="Enter password" required>
                 </div>
+            </div>
+
+            <div class="keep-login">
+                <input type="checkbox" name="keep_login" id="keep_login" value="1">
+                <label for="keep_login">Keep me logged in</label>
             </div>
 
             <button type="submit" class="btn-login">Sign In</button>

@@ -20,12 +20,19 @@ def login_view(request):
     if request.method == 'POST':
         u_name = request.POST.get('username')
         p_word = request.POST.get('password')
+        keep_login = request.POST.get('keep_login')
         user = authenticate(request, username=u_name, password=p_word)
         if user is not None:
             if hasattr(user, 'profile') and user.profile.status == 'inactive':
                 error = "Your account is deactivated. Please contact admin."
             else:
                 login(request, user)
+                if keep_login:
+                    # Keep session for 30 days
+                    request.session.set_expiry(60 * 60 * 24 * 30)
+                else:
+                    # Session expires when browser closes
+                    request.session.set_expiry(0)
                 return redirect('dashboard')
         else:
             error = "Invalid username or password"
