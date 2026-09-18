@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ title|default:"Edit Expense" }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+    .expense-edit-page {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 30px 0 40px;
+    }
+
+    .page-header {
+        margin-bottom: 18px;
+    }
+
+    .page-title {
+        font-size: 25px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .edit-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 2px;
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        width: 100%;
+        box-sizing: border-box;
+        height: 42px;
+        padding: 8px 11px;
+        border: 1px solid #d7dce3;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #111827;
+        font-size: 12px;
+        outline: none;
+    }
+
+    textarea.form-control {
+        height: 110px;
+        resize: vertical;
+    }
+
+    .form-control:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.08);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 22px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 17px;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .btn-save {
+        background: #7c3aed;
+        color: #ffffff;
+    }
+
+    @media (max-width: 700px) {
+
+        .expense-edit-page {
+            padding: 20px 12px 30px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group.full {
+            grid-column: auto;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+
+<div class="expense-edit-page">
+
+    <div class="page-header">
+
+        <div class="page-title">
+            Edit Expense
+        </div>
+
+        <div class="page-subtitle">
+            Update the selected expense details.
+        </div>
+
+    </div>
+
+
+    <div class="edit-card">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <div class="form-grid">
+
+
+                <!-- BRANCH -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Branch
+                    </label>
+
+                    <select
+                        name="branch"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Select Branch
+                        </option>
+
+                        {% for branch in branches %}
+
+                            <option
+                                value="{{ branch.id }}"
+                                {% if branch.id == expense.branch_id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ branch.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- EXPENSE DATE -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Expense Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="expense_date"
+                        class="form-control"
+                        value="{{ expense.expense_date|date:'Y-m-d' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- EXPENSE HEAD -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Expense Head
+                    </label>
+
+                    <select
+                        name="expense_head"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Select Expense Head
+                        </option>
+
+                        {% for head in expense_heads %}
+
+                            <option
+                                value="{{ head.id }}"
+                                {% if head.id == expense.expense_head_id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ head.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- AMOUNT -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Amount
+                    </label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        class="form-control"
+                        value="{{ expense.amount }}"
+                        step="any"
+                        min="0"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DESCRIPTION -->
+
+                <div class="form-group full">
+
+                    <label class="form-label">
+                        Remark / Description
+                    </label>
+
+                    <textarea
+                        name="description"
+                        class="form-control"
+                        placeholder="Enter remark or description"
+                    >{{ expense.description }}</textarea>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <a
+                    href="{% url 'expense_list' %}"
+                    class="btn btn-cancel"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-save"
+                >
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

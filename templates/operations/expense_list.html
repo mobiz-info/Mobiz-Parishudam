@@ -1,226 +1,709 @@
 {% extends 'base.html' %}
 
-{% block title %}Expense List{% endblock %}
+{% block title %}
+    Expense List
+{% endblock %}
 
-{% block page_title %}Expense List{% endblock %}
+{% block page_title %}
+    Expense List
+{% endblock %}
 
-{% block page_subtitle %}View and manage branch expenses{% endblock %}
+{% block page_subtitle %}
+    View and manage branch expenses
+{% endblock %}
 
 {% block header_actions %}
 
-<a href="{% url 'expense_entry' %}" class="btn-success">
-    <i class="ph-bold ph-plus"></i> Add Expense
+<a href="{% url 'expense_entry' %}"
+   class="btn-success">
+
+    <i class="ph-bold ph-plus"></i>
+    Add Expense
+
 </a>
 
 <a href="{% url 'expense_export_excel' %}?branch_id={{ request.GET.branch_id|default:'' }}&expense_head_id={{ request.GET.expense_head_id|default:'' }}&date_from={{ request.GET.date_from|default:'' }}&date_to={{ request.GET.date_to|default:'' }}"
-class="btn-success"> <i class="ph ph-file-xls"></i> Download Excel </a>
+   class="btn-success">
+
+    <i class="ph ph-file-xls"></i>
+    Download Excel
+
+</a>
 
 {% endblock %}
 
+
 {% block content %}
 
-<!-- Total Expense -->
+<style>
 
-<div class="kpi-grid" style="margin-bottom: 24px;">
+    /* =========================================
+       FILTER AREA
+    ========================================== */
+
+    .expense-filter-form {
+        padding: 16px;
+
+        display: flex;
+        align-items: center;
+
+        gap: 10px;
+
+        flex-wrap: wrap;
+    }
 
 
-<div class="kpi-card">
+    .expense-filter-form select,
+    .expense-filter-form input[type="date"] {
 
-    <div class="kpi-header">
+        height: 38px;
 
-        <span>Total Expense</span>
+        padding: 0 11px;
 
-        <div class="kpi-icon">
-            <i class="ph ph-receipt"></i>
+        border: 1px solid #d7dce3;
+
+        border-radius: 9px;
+
+        background: #ffffff;
+
+        color: #1f2937;
+
+        font-size: 12px;
+
+        outline: none;
+
+        min-width: 155px;
+
+        transition: 0.2s;
+
+    }
+
+
+    .expense-filter-form select:focus,
+    .expense-filter-form input[type="date"]:focus {
+
+        border-color: #8b5cf6;
+
+        box-shadow:
+            0 0 0 3px rgba(139, 92, 246, 0.08);
+
+    }
+
+
+    .expense-filter-form button,
+    .expense-filter-form a {
+
+        height: 38px;
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 6px;
+
+        padding: 0 14px;
+
+        border-radius: 9px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        text-decoration: none;
+
+        cursor: pointer;
+
+    }
+
+
+    /* =========================================
+       TABLE
+    ========================================== */
+
+    .expense-table-wrap {
+
+        width: 100%;
+
+        overflow-x: auto;
+    }
+
+
+    .premium-table {
+
+        width: 100%;
+
+        border-collapse: separate;
+
+        border-spacing: 0;
+
+        min-width: 900px;
+
+    }
+
+
+    .premium-table thead th {
+
+        padding: 11px 13px;
+
+        background: #f8fafc;
+
+        border-top: 1px solid #e5e7eb;
+
+        border-bottom: 1px solid #e5e7eb;
+
+        color: #64748b;
+
+        font-size: 10px;
+
+        font-weight: 800;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.45px;
+
+        text-align: left;
+
+        white-space: nowrap;
+
+    }
+
+
+    .premium-table thead th:first-child {
+
+        border-left: 1px solid #e5e7eb;
+
+        border-top-left-radius: 10px;
+
+    }
+
+
+    .premium-table thead th:last-child {
+
+        border-right: 1px solid #e5e7eb;
+
+        border-top-right-radius: 10px;
+
+    }
+
+
+    .premium-table tbody td {
+
+        padding: 10px 13px;
+
+        border-bottom: 1px solid #eef1f4;
+
+        color: #334155;
+
+        font-size: 12px;
+
+        vertical-align: middle;
+
+    }
+
+
+    .premium-table tbody tr {
+
+        background: #ffffff;
+
+        transition: 0.18s ease;
+
+    }
+
+
+    .premium-table tbody tr:hover {
+
+        background: #faf8ff;
+
+    }
+
+
+    /* =========================================
+       AMOUNT
+    ========================================== */
+
+    .expense-amount {
+
+        font-weight: 700;
+
+        color: #4c1d95;
+
+        white-space: nowrap;
+
+        font-variant-numeric: tabular-nums;
+
+    }
+
+
+    /* =========================================
+       DESCRIPTION
+    ========================================== */
+
+    .expense-description {
+
+        max-width: 280px;
+
+        white-space: pre-line;
+
+        line-height: 1.5;
+
+        color: #64748b;
+
+    }
+
+
+    /* =========================================
+       ACTIONS
+    ========================================== */
+
+    .expense-actions {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 6px;
+
+        white-space: nowrap;
+
+    }
+
+
+    .expense-action-btn {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 4px;
+
+        padding: 5px 9px;
+
+        border-radius: 7px;
+
+        font-size: 10px;
+
+        font-weight: 600;
+
+        text-decoration: none;
+
+        transition: 0.2s;
+
+    }
+
+
+    .expense-edit-btn {
+
+        color: #475569;
+
+        border: 1px solid #dbe1e8;
+
+        background: #f8fafc;
+
+    }
+
+
+    .expense-edit-btn:hover {
+
+        background: #f1f5f9;
+
+        border-color: #cbd5e1;
+
+    }
+
+
+    .expense-delete-btn {
+
+        color: #dc2626;
+
+        border: 1px solid #fecaca;
+
+        background: #fef2f2;
+
+    }
+
+
+    .expense-delete-btn:hover {
+
+        background: #fee2e2;
+
+        border-color: #fca5a5;
+
+    }
+
+
+    /* =========================================
+       NO DATA
+    ========================================== */
+
+    .no-expense-row {
+
+        text-align: center;
+
+        color: #64748b;
+
+        padding: 35px !important;
+
+        font-size: 12px;
+
+    }
+
+
+    /* =========================================
+       MOBILE
+    ========================================== */
+
+    @media (max-width: 700px) {
+
+        .expense-filter-form {
+
+            align-items: stretch;
+
+        }
+
+
+        .expense-filter-form select,
+        .expense-filter-form input[type="date"],
+        .expense-filter-form button,
+        .expense-filter-form a {
+
+            width: 100%;
+
+        }
+
+    }
+
+</style>
+
+
+<!-- =========================================
+     TOTAL EXPENSE
+========================================== -->
+
+<div class="kpi-grid"
+     style="margin-bottom: 24px;">
+
+    <div class="kpi-card">
+
+        <div class="kpi-header">
+
+            <span>
+                Total Expense
+            </span>
+
+            <div class="kpi-icon">
+
+                <i class="ph ph-receipt"></i>
+
+            </div>
+
+        </div>
+
+
+        <div class="kpi-value">
+
+            ₹{{ total_expense }}
+
+        </div>
+
+
+        <div class="kpi-footer">
+
+            Total for selected filters
+
         </div>
 
     </div>
 
-    <div class="kpi-value">
-        ₹{{ total_expense|floatformat:2 }}
-    </div>
-
-    <div class="kpi-footer">
-        Total for selected filters
-    </div>
-
 </div>
 
-</div>
 
 <div class="list-container">
 
-<div class="list-header">
 
-    <h3 style="font-size: 1rem; font-weight: 600; color: #0f172a;">
-        All Expenses
-    </h3>
+    <!-- =========================================
+         LIST HEADER
+    ========================================== -->
 
-</div>
+    <div class="list-header">
 
+        <h3 style="
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0;
+        ">
 
-<!-- Filters -->
+            All Expenses
 
-<form method="GET"
-      style="padding: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+        </h3>
 
-    {% if is_admin %}
+    </div>
 
-    <select name="branch_id">
 
-        <option value="">All Branches</option>
+    <!-- =========================================
+         FILTERS
+    ========================================== -->
 
-        {% for branch in branches %}
+    <form method="GET"
+          class="expense-filter-form">
 
-        <option value="{{ branch.id }}"
-            {% if request.GET.branch_id == branch.id|stringformat:"s" %}
-                selected
-            {% endif %}>
-            {{ branch.name }}
-        </option>
 
-        {% endfor %}
+        {% if is_admin %}
 
-    </select>
+        <select name="branch_id">
 
-    {% endif %}
+            <option value="">
 
+                All Branches
 
-    <select name="expense_head_id">
+            </option>
 
-        <option value="">All Expense Heads</option>
 
-        {% for head in expense_heads %}
+            {% for branch in branches %}
 
-        <option value="{{ head.id }}"
-            {% if expense_head_id == head.id|stringformat:"s" %}
-                selected
-            {% endif %}>
-            {{ head.name }}
-        </option>
+            <option value="{{ branch.id }}"
+                {% if request.GET.branch_id == branch.id|stringformat:"s" %}
+                    selected
+                {% endif %}>
 
-        {% endfor %}
+                {{ branch.name }}
 
-    </select>
+            </option>
 
+            {% endfor %}
 
-    <input type="date"
-           name="date_from"
-           value="{{ date_from }}">
+        </select>
 
+        {% endif %}
 
-    <input type="date"
-           name="date_to"
-           value="{{ date_to }}">
 
+        <select name="expense_head_id">
 
-    <button type="submit" class="btn-primary">
-        <i class="ph ph-funnel"></i>
-        Filter
-    </button>
+            <option value="">
 
+                All Expense Heads
 
-    <a href="{% url 'expense_list' %}" class="btn-secondary">
-        <i class="ph ph-arrows-counter-clockwise"></i>
-        Clear
-    </a>
+            </option>
 
-</form>
 
+            {% for head in expense_heads %}
 
-<!-- Expense Table -->
+            <option value="{{ head.id }}"
+                {% if expense_head_id == head.id|stringformat:"s" %}
+                    selected
+                {% endif %}>
 
-<table class="premium-table">
+                {{ head.name }}
 
-    <thead>
+            </option>
 
-        <tr>
-            <th>Date</th>
-            <th>Branch</th>
-            <th>Expense Head</th>
-            <th>Amount</th>
-            <th>Description</th>
-            <th>Actions</th>
-        </tr>
+            {% endfor %}
 
-    </thead>
+        </select>
 
 
-    <tbody>
+        <input type="date"
+               name="date_from"
+               value="{{ date_from }}">
 
-        {% for expense in expenses %}
 
-        <tr>
+        <input type="date"
+               name="date_to"
+               value="{{ date_to }}">
 
-            <td>
-                {{ expense.expense_date|date:"d-M-Y" }}
-            </td>
 
-            <td>
-                {{ expense.branch.name }}
-            </td>
+        <button type="submit"
+                class="btn-primary">
 
-            <td>
-                {{ expense.expense_head.name }}
-            </td>
+            <i class="ph ph-funnel"></i>
 
-            <td style="font-weight: 600;">
-                ₹{{ expense.amount }}
-            </td>
+            Filter
 
-            <td>
-                {{ expense.description|default:"-" }}
-            </td>
+        </button>
 
-            <td>
 
-                <div style="display: flex; gap: 8px;">
+        <a href="{% url 'expense_list' %}"
+           class="btn-secondary">
 
-                    <a href="{% url 'expense_edit' expense.id %}"
-                       class="btn-secondary"
-                       style="padding: 4px 10px; font-size: 0.75rem;">
+            <i class="ph ph-arrows-counter-clockwise"></i>
 
-                        <i class="ph ph-pencil-simple"></i>
-                        Edit
+            Clear
 
-                    </a>
+        </a>
 
+    </form>
 
-                    <a href="{% url 'expense_delete' expense.id %}"
-                       class="btn-secondary"
-                       style="padding: 4px 10px; font-size: 0.75rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;"
-                       onclick="return confirm('Are you sure you want to delete this expense?');">
 
-                        <i class="ph ph-trash"></i>
-                        Delete
+    <!-- =========================================
+         EXPENSE TABLE
+    ========================================== -->
 
-                    </a>
+    <div class="expense-table-wrap">
 
-                </div>
+        <table class="premium-table">
 
-            </td>
 
-        </tr>
+            <thead>
 
+                <tr>
 
-        {% empty %}
+                    <th>
+                        Date
+                    </th>
 
-        <tr>
+                    <th>
+                        Branch
+                    </th>
 
-            <td colspan="6"
-                style="text-align: center; color: #64748b; padding: 24px;">
+                    <th>
+                        Expense Head
+                    </th>
 
-                No expenses found.
+                    <th>
+                        Amount
+                    </th>
 
-            </td>
+                    <th>
+                        Description
+                    </th>
 
-        </tr>
+                    <th>
+                        Actions
+                    </th>
 
-        {% endfor %}
+                </tr>
 
-    </tbody>
+            </thead>
 
-</table>
+
+            <tbody>
+
+
+                {% for expense in expenses %}
+
+                <tr>
+
+
+                    <!-- DATE -->
+
+                    <td>
+
+                        {{ expense.expense_date|date:"d-M-Y" }}
+
+                    </td>
+
+
+                    <!-- BRANCH -->
+
+                    <td>
+
+                        {{ expense.branch.name }}
+
+                    </td>
+
+
+                    <!-- EXPENSE HEAD -->
+
+                    <td>
+
+                        {{ expense.expense_head.name }}
+
+                    </td>
+
+
+                    <!-- AMOUNT -->
+
+                    <td class="expense-amount">
+
+                        ₹{{ expense.amount }}
+
+                    </td>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <td>
+
+                        <div class="expense-description">
+
+                            {{ expense.description|default:"-" }}
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- ACTIONS -->
+
+                    <td>
+
+
+                        <div class="expense-actions">
+
+
+                            <a href="{% url 'expense_edit' expense.id %}"
+                               class="expense-action-btn expense-edit-btn">
+
+                                <i class="ph ph-pencil-simple"></i>
+
+                                Edit
+
+                            </a>
+
+
+                            <a href="{% url 'expense_delete' expense.id %}"
+                               class="expense-action-btn expense-delete-btn"
+
+                               onclick="
+                                   return confirm(
+                                       'Are you sure you want to delete this expense?'
+                                   );
+                               ">
+
+                                <i class="ph ph-trash"></i>
+
+                                Delete
+
+                            </a>
+
+
+                        </div>
+
+
+                    </td>
+
+
+                </tr>
+
+
+                {% empty %}
+
+
+                <tr>
+
+                    <td colspan="6"
+                        class="no-expense-row">
+
+                        No expenses found.
+
+                    </td>
+
+                </tr>
+
+
+                {% endfor %}
+
+
+            </tbody>
+
+
+        </table>
+
+    </div>
 
 
 </div>

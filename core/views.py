@@ -178,32 +178,86 @@ def staff_edit_view(request, pk):
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
 
-    profile = get_object_or_404(StaffProfile.select_related('user'), pk=pk)
+    staff = StaffProfile.objects.select_related(
+        'user',
+        'branch'
+    ).get(id=pk)
+
     branches = Branch.objects.filter(status='active')
 
     if request.method == 'POST':
-        user = profile.user
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        user.email = request.POST.get('email', '')
-        
-        new_password = request.POST.get('password')
-        if new_password and new_password.strip():
+        user = staff.user
+
+        user.first_name = request.POST.get(
+            'first_name',
+            ''
+        ).strip()
+
+        user.last_name = request.POST.get(
+            'last_name',
+            ''
+        ).strip()
+
+        user.email = request.POST.get(
+            'email',
+            ''
+        ).strip()
+
+        new_password = request.POST.get(
+            'password',
+            ''
+        ).strip()
+
+        if new_password:
             user.set_password(new_password)
+
         user.save()
 
-        profile.role = request.POST.get('role', 'STAFF')
-        branch_id = request.POST.get('branch_id')
-        profile.branch = Branch.objects.filter(id=branch_id).first() if branch_id else None
-        profile.phone = request.POST.get('phone', '')
-        profile.status = request.POST.get('status', 'active')
-        profile.save()
+        staff.role = request.POST.get(
+            'role',
+            'STAFF'
+        )
 
-        messages.success(request, f"Staff '{user.username}' updated successfully.")
+        branch_id = request.POST.get(
+            'branch_id'
+        )
+
+        if branch_id:
+            staff.branch = Branch.objects.filter(
+                id=branch_id,
+                status='active'
+            ).first()
+        else:
+            staff.branch = None
+
+        staff.phone = request.POST.get(
+            'phone',
+            ''
+        ).strip()
+
+        staff.status = request.POST.get(
+            'status',
+            'active'
+        )
+
+        staff.save()
+
+        messages.success(
+            request,
+            f"Staff '{user.username}' updated successfully."
+        )
+
         return redirect('staff_list')
 
-    return render(request, 'staff/staff_form.html', {'profile': profile, 'branches': branches, 'title': f'Edit Staff: {profile.user.username}'})
-
+    return render(
+        request,
+        'staff/staff_form.html',
+        {
+            'profile': staff,
+            'branches': branches,
+            'title': f'Edit Staff: {staff.user.username}',
+        }
+    )
 @login_required
 def staff_toggle_view(request, pk):
     if not request.user.profile.is_admin:

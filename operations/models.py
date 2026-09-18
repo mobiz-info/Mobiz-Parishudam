@@ -49,7 +49,7 @@ class Expense(models.Model):
     staff = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_entered')
     expense_date = models.DateField()
     expense_head = models.ForeignKey(ExpenseHead, on_delete=models.PROTECT, related_name='expenses')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=18, decimal_places=6)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_expenses')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_expenses')

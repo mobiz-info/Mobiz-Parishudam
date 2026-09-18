@@ -4,58 +4,66 @@
     {{ title|default:"Add Expense" }}
 {% endblock %}
 
+{% block page_title %}
+    {{ title|default:"Add Expense" }}
+{% endblock %}
+
+{% block page_subtitle %}
+    Manage branch and expense details
+{% endblock %}
+
 {% block content %}
 
 <style>
 
+    /* =========================================================
+       MAIN PAGE
+    ========================================================== */
+
     .expense-page {
-        max-width: 1250px;
+        max-width: 1050px;
         margin: 0 auto;
-        padding: 35px 0 40px;
+        padding: 28px 0 35px;
     }
 
 
-    /* =========================
+    /* =========================================================
        PAGE HEADER
-    ========================== */
+    ========================================================== */
 
     .page-header {
-        margin-bottom: 25px;
+        margin-bottom: 18px;
     }
 
     .page-title {
-        font-size: 28px;
+        font-size: 25px;
         font-weight: 700;
         color: #1f2937;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
 
     .page-subtitle {
-        font-size: 14px;
+        font-size: 12px;
         color: #6b7280;
     }
 
 
-    /* =========================
+    /* =========================================================
        SELECTOR CARD
-    ========================== */
+    ========================================================== */
 
     .selector-card {
-        background: linear-gradient(
-            145deg,
-            #ffffff,
-            #fafafa
-        );
+        background: #ffffff;
 
         border: 1px solid #e5e7eb;
-        border-radius: 20px;
+        border-radius: 16px;
 
-        padding: 26px;
+        padding: 17px 18px;
 
-        margin-bottom: 25px;
+        margin-bottom: 17px;
 
         box-shadow:
-            0 10px 30px rgba(15, 23, 42, 0.05);
+            0 5px 18px rgba(15, 23, 42, 0.04);
     }
 
 
@@ -63,82 +71,85 @@
         display: flex;
         align-items: center;
 
-        gap: 14px;
+        gap: 10px;
 
-        margin-bottom: 24px;
+        margin-bottom: 15px;
     }
 
 
     .selector-header-icon {
-        width: 46px;
-        height: 46px;
+        width: 38px;
+        height: 38px;
 
-        border-radius: 13px;
+        border-radius: 10px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        background: linear-gradient(
-            135deg,
-            #ede9fe,
-            #f5f3ff
-        );
-
+        background: #f3e8ff;
         color: #7c3aed;
 
-        font-size: 21px;
+        font-size: 17px;
 
         flex-shrink: 0;
     }
 
 
     .selector-header-title {
-        font-size: 17px;
+        font-size: 15px;
         font-weight: 700;
         color: #111827;
     }
 
 
     .selector-header-subtitle {
-        font-size: 12px;
+        font-size: 10px;
         color: #9ca3af;
 
-        margin-top: 3px;
+        margin-top: 2px;
     }
 
 
-    /* =========================
-       SELECTOR GROUP
-    ========================== */
+    /* =========================================================
+       SELECTOR ROW
+    ========================================================== */
+
+    .selector-row {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 12px;
+
+        align-items: end;
+    }
+
 
     .selector-group {
-        margin-bottom: 18px;
-    }
-
-    .selector-group:last-child {
-        margin-bottom: 0;
+        min-width: 0;
     }
 
 
     .selector-label {
         display: block;
 
-        margin-bottom: 9px;
+        margin-bottom: 6px;
 
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 700;
 
         color: #374151;
     }
 
 
-    /* =========================
+    /* =========================================================
        CUSTOM SELECT
-    ========================== */
+    ========================================================== */
 
     .custom-select-wrap {
         position: relative;
+
         width: 100%;
     }
 
@@ -148,15 +159,15 @@
 
         position: absolute;
 
-        left: 16px;
+        left: 10px;
         top: 50%;
 
         transform: translateY(-50%);
 
-        width: 34px;
-        height: 34px;
+        width: 28px;
+        height: 28px;
 
-        border-radius: 10px;
+        border-radius: 8px;
 
         background: #f5f3ff;
 
@@ -169,14 +180,14 @@
     .custom-select-icon {
         position: absolute;
 
-        left: 26px;
+        left: 18px;
         top: 50%;
 
         transform: translateY(-50%);
 
         color: #7c3aed;
 
-        font-size: 16px;
+        font-size: 13px;
 
         pointer-events: none;
 
@@ -187,14 +198,14 @@
     .custom-select-arrow {
         position: absolute;
 
-        right: 18px;
+        right: 13px;
         top: 50%;
 
         transform: translateY(-50%);
 
         color: #6b7280;
 
-        font-size: 17px;
+        font-size: 14px;
 
         pointer-events: none;
 
@@ -204,40 +215,34 @@
 
     .custom-select {
         width: 100%;
-        height: 54px;
+        height: 44px;
 
         appearance: none;
         -webkit-appearance: none;
 
         border: 1px solid #dfe3ea;
 
-        border-radius: 14px;
+        border-radius: 11px;
 
         background: #ffffff;
 
         color: #1f2937;
 
-        padding: 0 48px 0 66px;
+        padding: 0 38px 0 48px;
 
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 600;
 
         outline: none;
 
         cursor: pointer;
 
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        transition: all 0.2s ease;
     }
 
 
     .custom-select:hover {
         border-color: #c4b5fd;
-
-        box-shadow:
-            0 5px 15px rgba(124, 58, 237, 0.06);
     }
 
 
@@ -245,31 +250,23 @@
         border-color: #8b5cf6;
 
         box-shadow:
-            0 0 0 4px rgba(139, 92, 246, 0.12);
-
-        transform: translateY(-1px);
+            0 0 0 3px rgba(139, 92, 246, 0.09);
     }
 
 
     .custom-select option {
         color: #1f2937;
         background: #ffffff;
-        font-weight: 500;
+        font-size: 12px;
     }
 
 
-    /* =========================
-       SECOND DROPDOWN
-    ========================== */
+    /* =========================================================
+       SECOND SELECTOR
+    ========================================================== */
 
     .second-selector {
-        margin-top: 20px;
-
-        padding-top: 20px;
-
-        border-top: 1px solid #f0f0f0;
-
-        animation: selectorFade 0.25s ease;
+        animation: selectorFade 0.2s ease;
     }
 
 
@@ -277,139 +274,255 @@
 
         from {
             opacity: 0;
-            transform: translateY(-5px);
+            transform: translateX(5px);
         }
 
         to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
         }
 
     }
 
 
-    /* =========================
-       SELECTED CARD
-    ========================== */
+    /* =========================================================
+       SELECTED + DATE SAME SIZE
+    ========================================================== */
+
+    .info-row {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 14px;
+
+        margin-bottom: 16px;
+
+        align-items: stretch;
+    }
+
+
+    /* =========================================================
+       SELECTION CARD
+    ========================================================== */
 
     .selection-card {
         display: flex;
 
         align-items: center;
 
-        gap: 15px;
+        gap: 12px;
 
-        background: linear-gradient(
-            135deg,
-            #faf5ff,
-            #f5f3ff
-        );
+        min-height: 82px;
+
+        box-sizing: border-box;
+
+        background:
+            linear-gradient(
+                135deg,
+                #faf5ff 0%,
+                #f5f3ff 100%
+            );
 
         border: 1px solid #ddd6fe;
 
-        border-radius: 17px;
+        border-radius: 14px;
 
-        padding: 18px 20px;
+        padding: 14px 16px;
 
-        margin-bottom: 20px;
+        margin: 0;
+
+        min-width: 0;
+
+        box-shadow:
+            0 4px 14px rgba(124, 58, 237, 0.06);
+
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
     }
 
 
-    .selection-icon {
-        width: 44px;
-        height: 44px;
+    .selection-card:hover {
+        border-color: #c4b5fd;
 
-        border-radius: 12px;
+        box-shadow:
+            0 7px 18px rgba(124, 58, 237, 0.10);
+
+        transform: translateY(-1px);
+    }
+
+
+    /* =========================================================
+       SELECTION ICON
+    ========================================================== */
+
+    .selection-icon {
+        width: 42px;
+        height: 42px;
+
+        border-radius: 11px;
 
         display: flex;
+
         align-items: center;
         justify-content: center;
 
-        background: #ede9fe;
+        background:
+            linear-gradient(
+                135deg,
+                #ede9fe,
+                #ddd6fe
+            );
 
         color: #7c3aed;
 
-        font-size: 19px;
+        font-size: 17px;
+
+        flex-shrink: 0;
+
+        box-shadow:
+            inset 0 0 0 1px rgba(124, 58, 237, 0.05);
     }
 
 
     .selection-title {
-        font-size: 11px;
+        font-size: 9px;
 
         text-transform: uppercase;
 
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
 
-        font-weight: 700;
+        font-weight: 800;
 
         color: #8b5cf6;
 
-        margin-bottom: 3px;
+        margin-bottom: 4px;
     }
 
 
     .selection-name {
-        font-size: 19px;
+        font-size: 15px;
 
-        font-weight: 700;
+        font-weight: 800;
 
         color: #4c1d95;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
     }
 
 
-    /* =========================
+    /* =========================================================
        DATE CARD
-    ========================== */
+    ========================================================== */
 
     .date-card {
-        background: #ffffff;
+        min-height: 82px;
+
+        box-sizing: border-box;
+
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff 0%,
+                #fafafa 100%
+            );
 
         border: 1px solid #e5e7eb;
 
-        border-radius: 17px;
+        border-radius: 14px;
 
-        padding: 20px;
+        padding: 14px 16px;
 
-        margin-bottom: 22px;
+        margin: 0;
+
+        display: flex;
+
+        flex-direction: column;
+
+        justify-content: center;
 
         box-shadow:
-            0 6px 20px rgba(15, 23, 42, 0.035);
+            0 4px 14px rgba(15, 23, 42, 0.04);
+
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .date-card:hover {
+        border-color: #c4b5fd;
+
+        box-shadow:
+            0 7px 18px rgba(15, 23, 42, 0.07);
     }
 
 
     .date-label {
         display: block;
 
-        font-size: 13px;
+        font-size: 9px;
 
-        font-weight: 700;
+        font-weight: 800;
 
-        color: #374151;
+        color: #64748b;
 
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
     }
 
 
-    /* =========================
+    .date-card .form-control {
+        height: 40px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        background: #ffffff;
+
+        border: 1px solid #d7dce3;
+
+        border-radius: 9px;
+
+        padding: 7px 10px;
+
+        box-shadow:
+            0 1px 3px rgba(15, 23, 42, 0.03);
+    }
+
+
+    /* =========================================================
        FORM CONTROL
-    ========================== */
+    ========================================================== */
 
     .form-control {
         width: 100%;
 
         box-sizing: border-box;
 
-        padding: 12px 14px;
+        height: 38px;
 
-        border: 1px solid #d1d5db;
+        padding: 7px 10px;
 
-        border-radius: 11px;
+        border: 1px solid #d7dce3;
+
+        border-radius: 9px;
 
         background: #ffffff;
 
-        font-size: 14px;
-
         color: #111827;
+
+        font-size: 11px;
 
         outline: none;
 
@@ -421,25 +534,25 @@
         border-color: #8b5cf6;
 
         box-shadow:
-            0 0 0 4px rgba(139, 92, 246, 0.10);
+            0 0 0 3px rgba(139, 92, 246, 0.08);
     }
 
 
-    /* =========================
+    /* =========================================================
        EXPENSE PANEL
-    ========================== */
+    ========================================================== */
 
     .expense-panel {
         background: #ffffff;
 
         border: 1px solid #e5e7eb;
 
-        border-radius: 20px;
+        border-radius: 16px;
 
-        padding: 22px;
+        padding: 15px;
 
         box-shadow:
-            0 8px 25px rgba(15, 23, 42, 0.04);
+            0 5px 18px rgba(15, 23, 42, 0.03);
     }
 
 
@@ -450,14 +563,12 @@
 
         align-items: center;
 
-        gap: 15px;
-
-        margin-bottom: 19px;
+        margin-bottom: 11px;
     }
 
 
     .panel-title {
-        font-size: 18px;
+        font-size: 15px;
 
         font-weight: 700;
 
@@ -466,43 +577,43 @@
 
 
     .panel-description {
-        margin-top: 4px;
+        margin-top: 2px;
 
-        font-size: 13px;
+        font-size: 10px;
 
-        color: #6b7280;
+        color: #94a3b8;
     }
 
 
-    /* =========================
-       TABLE HEADER
-    ========================== */
+    /* =========================================================
+       LIST HEADER
+    ========================================================== */
 
     .expense-list-header {
         display: grid;
 
         grid-template-columns:
-            1.25fr
-            1.1fr
             1.35fr
-            1.45fr;
+            0.9fr
+            1.25fr
+            1.35fr;
 
-        gap: 14px;
+        gap: 9px;
 
-        padding: 12px 16px;
+        padding: 8px 11px;
 
         background: #f8fafc;
 
         border: 1px solid #e5e7eb;
 
-        border-radius: 12px;
+        border-radius: 8px;
 
-        margin-bottom: 10px;
+        margin-bottom: 5px;
     }
 
 
     .expense-list-header div {
-        font-size: 10px;
+        font-size: 8px;
 
         font-weight: 800;
 
@@ -510,69 +621,73 @@
 
         text-transform: uppercase;
 
-        letter-spacing: 0.6px;
+        letter-spacing: 0.4px;
     }
 
 
-    /* =========================
-       EXPENSE ROW
-    ========================== */
+    /* =========================================================
+       COMPACT ROW
+    ========================================================== */
 
     .expense-row {
         display: grid;
 
         grid-template-columns:
-            1.25fr
-            1.1fr
             1.35fr
-            1.45fr;
+            0.9fr
+            1.25fr
+            1.35fr;
 
-        gap: 14px;
+        gap: 9px;
 
         align-items: center;
 
         background: #ffffff;
 
-        border: 1px solid #e5e7eb;
+        border: 1px solid #edf0f3;
 
-        border-radius: 15px;
+        border-radius: 9px;
 
-        padding: 15px 16px;
+        padding: 7px 10px;
 
-        margin-bottom: 10px;
+        margin-bottom: 4px;
 
-        transition: all 0.2s ease;
+        min-height: 48px;
+
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
     }
 
 
     .expense-row:hover {
-        border-color: #c4b5fd;
+        border-color: #d8ccfa;
 
         box-shadow:
-            0 7px 20px rgba(124, 58, 237, 0.07);
-
-        transform: translateY(-1px);
+            0 3px 10px rgba(124, 58, 237, 0.05);
     }
 
 
-    /* =========================
+    /* =========================================================
        EXPENSE HEAD
-    ========================== */
+    ========================================================== */
 
     .expense-head-cell {
         display: flex;
 
         align-items: center;
 
-        gap: 11px;
+        gap: 8px;
+
+        min-width: 0;
     }
 
 
     .expense-icon {
-        width: 39px;
-        height: 39px;
+        width: 29px;
+        height: 29px;
 
-        border-radius: 11px;
+        border-radius: 8px;
 
         display: flex;
 
@@ -584,99 +699,124 @@
 
         color: #7c3aed;
 
-        font-size: 17px;
+        font-size: 13px;
 
         flex-shrink: 0;
     }
 
 
     .expense-head-name {
-        font-size: 14px;
+        font-size: 11px;
 
         font-weight: 700;
 
         color: #1f2937;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
     }
 
 
-    /* =========================
+    /* =========================================================
        BRANCH
-    ========================== */
+    ========================================================== */
 
     .branch-name {
-        font-size: 14px;
+        font-size: 11px;
 
         font-weight: 700;
 
         color: #1f2937;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
     }
 
 
     .branch-subtext {
-        font-size: 11px;
+        font-size: 8px;
 
         color: #9ca3af;
 
-        margin-top: 3px;
+        margin-top: 1px;
     }
 
 
-    /* =========================
-       INPUT
-    ========================== */
+    /* =========================================================
+       INPUTS
+    ========================================================== */
 
     .amount-input {
+        height: 35px;
+
+        font-size: 11px;
+
         font-weight: 700;
     }
 
 
     .remark-input {
-        min-height: 46px;
+        height: 35px;
 
-        resize: vertical;
+        resize: none;
     }
 
 
-    /* =========================
+    /* =========================================================
        VEHICLE
-    ========================== */
+    ========================================================== */
 
     .vehicle-section {
         background: #f8fafc;
 
-        border: 1px dashed #cbd5e1;
+        border: 1px solid #e5e7eb;
 
-        border-radius: 12px;
+        border-radius: 7px;
 
-        padding: 12px;
+        padding: 5px;
     }
 
 
     .vehicle-label {
         display: block;
 
-        font-size: 11px;
+        font-size: 8px;
 
         font-weight: 700;
 
-        color: #475569;
+        color: #64748b;
 
-        margin-bottom: 7px;
+        margin-bottom: 3px;
+    }
+
+
+    .vehicle-section .form-control {
+        height: 31px;
+
+        font-size: 10px;
+
+        padding: 5px 7px;
     }
 
 
     .vehicle-details {
         display: none;
 
-        margin-top: 10px;
+        margin-top: 4px;
 
         background: #ffffff;
 
         border: 1px solid #e2e8f0;
 
-        border-radius: 10px;
+        border-radius: 6px;
 
-        padding: 11px;
+        padding: 5px 7px;
     }
 
 
@@ -686,20 +826,20 @@
 
 
     .vehicle-detail-title {
-        font-size: 11px;
+        font-size: 8px;
 
         font-weight: 700;
 
         color: #334155;
 
-        margin-bottom: 6px;
+        margin-bottom: 2px;
     }
 
 
     .vehicle-detail-text {
-        font-size: 11px;
+        font-size: 8px;
 
-        line-height: 1.7;
+        line-height: 1.45;
 
         color: #64748b;
 
@@ -707,62 +847,18 @@
     }
 
 
-    /* =========================
-       EMPTY STATE
-    ========================== */
-
-    .empty-state {
-        background: #ffffff;
-
-        border: 1px dashed #cbd5e1;
-
-        border-radius: 18px;
-
-        padding: 48px 20px;
-
-        text-align: center;
-    }
-
-
-    .empty-icon {
-        font-size: 38px;
-
-        color: #a78bfa;
-
-        margin-bottom: 12px;
-    }
-
-
-    .empty-title {
-        font-size: 17px;
-
-        font-weight: 700;
-
-        color: #334155;
-
-        margin-bottom: 5px;
-    }
-
-
-    .empty-text {
-        font-size: 13px;
-
-        color: #94a3b8;
-    }
-
-
-    /* =========================
+    /* =========================================================
        BUTTONS
-    ========================== */
+    ========================================================== */
 
     .action-bar {
         display: flex;
 
         justify-content: flex-end;
 
-        gap: 10px;
+        gap: 7px;
 
-        margin-top: 22px;
+        margin-top: 13px;
     }
 
 
@@ -773,15 +869,15 @@
 
         justify-content: center;
 
-        gap: 8px;
+        gap: 5px;
 
         border: none;
 
-        border-radius: 11px;
+        border-radius: 8px;
 
-        padding: 12px 21px;
+        padding: 9px 15px;
 
-        font-size: 14px;
+        font-size: 11px;
 
         font-weight: 600;
 
@@ -816,17 +912,68 @@
         background: #6d28d9;
 
         box-shadow:
-            0 7px 17px rgba(124, 58, 237, 0.25);
-
-        transform: translateY(-1px);
+            0 5px 13px rgba(124, 58, 237, 0.2);
     }
 
 
-    /* =========================
-       RESPONSIVE
-    ========================== */
+    /* =========================================================
+       EMPTY STATE
+    ========================================================== */
 
-    @media (max-width: 1000px) {
+    .empty-state {
+        background: #ffffff;
+
+        border: 1px dashed #cbd5e1;
+
+        border-radius: 13px;
+
+        padding: 28px 15px;
+
+        text-align: center;
+    }
+
+
+    .empty-icon {
+        font-size: 27px;
+
+        color: #a78bfa;
+
+        margin-bottom: 7px;
+    }
+
+
+    .empty-title {
+        font-size: 13px;
+
+        font-weight: 700;
+
+        color: #334155;
+
+        margin-bottom: 3px;
+    }
+
+
+    .empty-text {
+        font-size: 10px;
+
+        color: #94a3b8;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================== */
+
+    @media (max-width: 850px) {
+
+        .expense-page {
+            padding: 24px 12px 30px;
+        }
+
+        .selector-row,
+        .info-row {
+            grid-template-columns: 1fr;
+        }
 
         .expense-list-header {
             display: none;
@@ -835,23 +982,23 @@
         .expense-row {
             grid-template-columns: 1fr 1fr;
         }
+
     }
 
 
-    @media (max-width: 650px) {
+    @media (max-width: 560px) {
 
         .expense-page {
-            padding: 25px 0 25px;
+            padding: 20px 9px 25px;
         }
 
         .page-title {
-            font-size: 23px;
+            font-size: 22px;
         }
 
         .selector-card,
-        .expense-panel,
-        .date-card {
-            padding: 16px;
+        .expense-panel {
+            padding: 12px;
         }
 
         .expense-row {
@@ -865,6 +1012,7 @@
         .btn {
             width: 100%;
         }
+
     }
 
 </style>
@@ -919,212 +1067,207 @@
 
 
         <!-- =================================================
-             FIRST DROPDOWN
+             BOTH SELECTORS SAME ROW
         ================================================== -->
 
-        <div class="selector-group">
-
-            <label class="selector-label"
-                   for="entry_type">
-
-                Select Entry Type
-
-            </label>
+        <div class="selector-row">
 
 
-            <div class="custom-select-wrap">
+            <!-- FIRST DROPDOWN -->
 
-                <div class="custom-select-icon">
+            <div class="selector-group">
 
-                    <i class="ph ph-list"></i>
-
-                </div>
-
-
-                <div class="custom-select-arrow">
-
-                    <i class="ph ph-caret-down"></i>
-
-                </div>
+                <label
+                    class="selector-label"
+                    for="entry_type"
+                >
+                    Select Entry Type
+                </label>
 
 
-                <select id="entry_type"
+                <div class="custom-select-wrap">
+
+                    <div class="custom-select-icon">
+                        <i class="ph ph-list"></i>
+                    </div>
+
+
+                    <div class="custom-select-arrow">
+                        <i class="ph ph-caret-down"></i>
+                    </div>
+
+
+                    <select
+                        id="entry_type"
                         class="custom-select"
-                        required>
+                        required
+                    >
 
-
-                    <option value=""
+                        <option
+                            value=""
                             disabled
                             {% if not entry_mode %}
                                 selected
-                            {% endif %}>
+                            {% endif %}
+                        >
+                            Select Entry Type
+                        </option>
 
-                        Select Entry Type
 
-                    </option>
-
-
-                    <option value="branch"
+                        <option
+                            value="branch"
                             {% if entry_mode == 'branch' %}
                                 selected
-                            {% endif %}>
+                            {% endif %}
+                        >
+                            Branch
+                        </option>
 
-                        Branch
 
-                    </option>
-
-
-                    <option value="expense_head"
+                        <option
+                            value="expense_head"
                             {% if entry_mode == 'expense_head' %}
                                 selected
-                            {% endif %}>
+                            {% endif %}
+                        >
+                            Expense Head
+                        </option>
 
-                        Expense Head
+                    </select>
 
-                    </option>
-
-
-                </select>
+                </div>
 
             </div>
 
-        </div>
+
+            <!-- =================================================
+                 BRANCH DROPDOWN
+            ================================================== -->
+
+            <div
+                id="branch_selector_box"
+                class="selector-group second-selector"
+                style="{% if entry_mode == 'branch' %}display:block;{% else %}display:none;{% endif %}"
+            >
+
+                <label
+                    class="selector-label"
+                    for="branch_selector"
+                >
+                    Select Branch
+                </label>
 
 
-        <!-- =================================================
-             SECOND DROPDOWN - BRANCH
-        ================================================== -->
+                <div class="custom-select-wrap">
 
-        <div id="branch_selector_box"
-             class="selector-group second-selector"
-             style="{% if entry_mode == 'branch' %}display:block;{% else %}display:none;{% endif %}">
+                    <div class="custom-select-icon">
+                        <i class="ph ph-buildings"></i>
+                    </div>
 
 
-            <label class="selector-label"
-                   for="branch_selector">
-
-                Select Branch
-
-            </label>
+                    <div class="custom-select-arrow">
+                        <i class="ph ph-caret-down"></i>
+                    </div>
 
 
-            <div class="custom-select-wrap">
+                    <select
+                        id="branch_selector"
+                        class="custom-select"
+                    >
 
-
-                <div class="custom-select-icon">
-
-                    <i class="ph ph-buildings"></i>
-
-                </div>
-
-
-                <div class="custom-select-arrow">
-
-                    <i class="ph ph-caret-down"></i>
-
-                </div>
-
-
-                <select id="branch_selector"
-                        class="custom-select">
-
-
-                    <option value=""
+                        <option
+                            value=""
                             disabled
                             {% if not selected_branch %}
                                 selected
-                            {% endif %}>
-
-                        Select Branch
-
-                    </option>
-
-
-                    {% for branch in branches %}
-
-                        <option value="{{ branch.id }}"
-                            {% if selected_branch and selected_branch.id == branch.id %}
-                                selected
-                            {% endif %}>
-
-                            {{ branch.name }}
-
+                            {% endif %}
+                        >
+                            Select Branch
                         </option>
 
-                    {% endfor %}
 
+                        {% for branch in branches %}
 
-                </select>
+                            <option
+                                value="{{ branch.id }}"
+                                {% if selected_branch and selected_branch.id == branch.id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ branch.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
 
             </div>
 
-        </div>
+
+            <!-- =================================================
+                 EXPENSE HEAD DROPDOWN
+            ================================================== -->
+
+            <div
+                id="expense_head_selector_box"
+                class="selector-group second-selector"
+                style="{% if entry_mode == 'expense_head' %}display:block;{% else %}display:none;{% endif %}"
+            >
+
+                <label
+                    class="selector-label"
+                    for="expense_head_selector"
+                >
+                    Select Expense Head
+                </label>
 
 
-        <!-- =================================================
-             SECOND DROPDOWN - EXPENSE HEAD
-        ================================================== -->
+                <div class="custom-select-wrap">
 
-        <div id="expense_head_selector_box"
-             class="selector-group second-selector"
-             style="{% if entry_mode == 'expense_head' %}display:block;{% else %}display:none;{% endif %}">
+                    <div class="custom-select-icon">
+                        <i class="ph ph-receipt"></i>
+                    </div>
 
 
-            <label class="selector-label"
-                   for="expense_head_selector">
-
-                Select Expense Head
-
-            </label>
+                    <div class="custom-select-arrow">
+                        <i class="ph ph-caret-down"></i>
+                    </div>
 
 
-            <div class="custom-select-wrap">
+                    <select
+                        id="expense_head_selector"
+                        class="custom-select"
+                    >
 
-
-                <div class="custom-select-icon">
-
-                    <i class="ph ph-receipt"></i>
-
-                </div>
-
-
-                <div class="custom-select-arrow">
-
-                    <i class="ph ph-caret-down"></i>
-
-                </div>
-
-
-                <select id="expense_head_selector"
-                        class="custom-select">
-
-
-                    <option value=""
+                        <option
+                            value=""
                             disabled
                             {% if not selected_expense_head %}
                                 selected
-                            {% endif %}>
-
-                        Select Expense Head
-
-                    </option>
-
-
-                    {% for head in expense_heads %}
-
-                        <option value="{{ head.id }}"
-                            {% if selected_expense_head and selected_expense_head.id == head.id %}
-                                selected
-                            {% endif %}>
-
-                            {{ head.name }}
-
+                            {% endif %}
+                        >
+                            Select Expense Head
                         </option>
 
-                    {% endfor %}
 
+                        {% for head in expense_heads %}
 
-                </select>
+                            <option
+                                value="{{ head.id }}"
+                                {% if selected_expense_head and selected_expense_head.id == head.id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ head.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
 
             </div>
 
@@ -1145,65 +1288,80 @@
         {% csrf_token %}
 
 
-        <input type="hidden"
-               name="entry_mode"
-               value="branch">
+        <input
+            type="hidden"
+            name="entry_mode"
+            value="branch"
+        >
 
 
-        <input type="hidden"
-               name="branch_id"
-               value="{{ selected_branch.id }}">
+        <input
+            type="hidden"
+            name="branch_id"
+            value="{{ selected_branch.id }}"
+        >
 
 
-        <!-- SELECTED BRANCH -->
+        <!-- =================================================
+             SELECTED BRANCH + DATE
+        ================================================== -->
 
-        <div class="selection-card">
+        <div class="info-row">
 
-            <div class="selection-icon">
 
-                <i class="ph ph-buildings"></i>
+            <!-- SELECTED BRANCH -->
+
+            <div class="selection-card">
+
+                <div class="selection-icon">
+                    <i class="ph ph-buildings"></i>
+                </div>
+
+
+                <div>
+
+                    <div class="selection-title">
+                        Selected Branch
+                    </div>
+
+                    <div class="selection-name">
+                        {{ selected_branch.name }}
+                    </div>
+
+                </div>
 
             </div>
 
 
-            <div>
+            <!-- DATE -->
 
-                <div class="selection-title">
-                    Selected Branch
-                </div>
+            <div class="date-card">
 
-                <div class="selection-name">
-                    {{ selected_branch.name }}
-                </div>
+                <label
+                    class="date-label"
+                    for="expense_date"
+                >
+                    Expense Date
+                </label>
+
+
+                <input
+                    type="date"
+                    id="expense_date"
+                    name="expense_date"
+                    class="form-control"
+                    value="{{ today|date:'Y-m-d' }}"
+                    required
+                >
 
             </div>
 
         </div>
 
 
-        <!-- DATE -->
-
-        <div class="date-card">
-
-            <label class="date-label"
-                   for="expense_date">
-
-                Expense Date
-
-            </label>
-
-
-            <input type="date"
-                   id="expense_date"
-                   name="expense_date"
-                   class="form-control"
-                   value="{{ today|date:'Y-m-d' }}"
-                   required>
-
-        </div>
-
-
-        <!-- EXPENSE PANEL -->
+        <!-- =================================================
+             EXPENSE DETAILS
+        ================================================== -->
 
         <div class="expense-panel">
 
@@ -1261,16 +1419,11 @@
                 <div class="expense-head-cell">
 
                     <div class="expense-icon">
-
                         <i class="ph ph-receipt"></i>
-
                     </div>
 
-
                     <div class="expense-head-name">
-
                         {{ row.expense_head.name }}
-
                     </div>
 
                 </div>
@@ -1280,12 +1433,14 @@
 
                 <div>
 
-                    <input type="number"
-                           name="amount_{{ row.expense_head.id }}"
-                           class="form-control amount-input"
-                           placeholder="0.00"
-                           step="0.01"
-                           min="0">
+                    <input
+                        type="number"
+                        name="amount_{{ row.expense_head.id }}"
+                        class="form-control amount-input"
+                        placeholder="0.00"
+                        step="any"
+                        min="0"
+                    >
 
                 </div>
 
@@ -1294,47 +1449,41 @@
 
                 <div>
 
-                    <textarea
+                    <input
+                        type="text"
                         name="remark_{{ row.expense_head.id }}"
                         class="form-control remark-input"
-                        placeholder="Enter remark..."></textarea>
+                        placeholder="Enter remark..."
+                    >
 
                 </div>
 
 
-                <!-- ADDITIONAL DETAILS -->
+                <!-- VEHICLE ONLY FOR VEHICLE EXPENSE -->
 
                 <div>
 
-
                     {% if row.expense_head.name|lower == "vehicle expense" %}
-
 
                         <div class="vehicle-section">
 
-
                             <label class="vehicle-label">
-
                                 Select Vehicle
-
                             </label>
 
 
                             <select
                                 name="vehicle_{{ row.expense_head.id }}"
                                 class="form-control vehicle-select"
-                                data-details-target="vehicle-details-{{ row.expense_head.id }}">
-
+                                data-details-target="vehicle-details-{{ row.expense_head.id }}"
+                            >
 
                                 <option value="">
-
                                     Select Vehicle
-
                                 </option>
 
 
                                 {% for vehicle in row.vehicle_list %}
-
 
                                     <option
                                         value="{{ vehicle.id }}"
@@ -1342,85 +1491,62 @@
                                         data-type="{{ vehicle.vehicle_type }}"
                                         data-driver="{{ vehicle.driver_name }}"
                                         data-phone="{{ vehicle.driver_phone }}"
-                                        data-branch="{{ vehicle.branch.name }}">
-
+                                        data-branch="{{ vehicle.branch.name }}"
+                                    >
                                         {{ vehicle.vehicle_number }}
-
                                     </option>
 
-
                                 {% endfor %}
-
 
                             </select>
 
 
                             <div
                                 id="vehicle-details-{{ row.expense_head.id }}"
-                                class="vehicle-details">
-
+                                class="vehicle-details"
+                            >
 
                                 <div class="vehicle-detail-title">
-
                                     Vehicle Details
-
                                 </div>
-
 
                                 <div class="vehicle-detail-text"></div>
 
-
                             </div>
 
-
                         </div>
-
 
                     {% else %}
 
-
                         <div class="branch-subtext">
-
-                            No additional details required
-
+                            -
                         </div>
-
 
                     {% endif %}
 
-
                 </div>
+
 
             </div>
 
 
             {% empty %}
 
-
                 <div class="empty-state">
 
                     <div class="empty-icon">
-
                         <i class="ph ph-receipt"></i>
-
                     </div>
-
 
                     <div class="empty-title">
-
                         No Expense Heads Found
-
                     </div>
 
-
                     <div class="empty-text">
-
                         Please create an expense head before adding expenses.
-
                     </div>
 
                 </div>
-
 
             {% endfor %}
 
@@ -1432,26 +1558,22 @@
 
         <div class="action-bar">
 
-
-            <a href="{% url 'expense_list' %}"
-               class="btn btn-cancel">
-
+            <a
+                href="{% url 'expense_list' %}"
+                class="btn btn-cancel"
+            >
                 <i class="ph ph-x"></i>
-
                 Cancel
-
             </a>
 
 
-            <button type="submit"
-                    class="btn btn-save">
-
+            <button
+                type="submit"
+                class="btn btn-save"
+            >
                 <i class="ph ph-floppy-disk"></i>
-
                 Save Expenses
-
             </button>
-
 
         </div>
 
@@ -1473,73 +1595,80 @@
         {% csrf_token %}
 
 
-        <input type="hidden"
-               name="entry_mode"
-               value="expense_head">
+        <input
+            type="hidden"
+            name="entry_mode"
+            value="expense_head"
+        >
 
 
-        <input type="hidden"
-               name="expense_head_id"
-               value="{{ selected_expense_head.id }}">
+        <input
+            type="hidden"
+            name="expense_head_id"
+            value="{{ selected_expense_head.id }}"
+        >
 
 
-        <!-- SELECTED EXPENSE HEAD -->
+        <!-- =================================================
+             SELECTED EXPENSE HEAD + DATE
+        ================================================== -->
 
-        <div class="selection-card">
+        <div class="info-row">
 
 
-            <div class="selection-icon">
+            <!-- SELECTED EXPENSE HEAD -->
 
-                <i class="ph ph-receipt"></i>
+            <div class="selection-card">
+
+                <div class="selection-icon">
+                    <i class="ph ph-receipt"></i>
+                </div>
+
+
+                <div>
+
+                    <div class="selection-title">
+                        Selected Expense Head
+                    </div>
+
+                    <div class="selection-name">
+                        {{ selected_expense_head.name }}
+                    </div>
+
+                </div>
 
             </div>
 
 
-            <div>
+            <!-- DATE -->
 
-                <div class="selection-title">
+            <div class="date-card">
 
-                    Selected Expense Head
+                <label
+                    class="date-label"
+                    for="expense_date_head"
+                >
+                    Expense Date
+                </label>
 
-                </div>
 
-
-                <div class="selection-name">
-
-                    {{ selected_expense_head.name }}
-
-                </div>
+                <input
+                    type="date"
+                    id="expense_date_head"
+                    name="expense_date"
+                    class="form-control"
+                    value="{{ today|date:'Y-m-d' }}"
+                    required
+                >
 
             </div>
 
         </div>
 
 
-        <!-- DATE -->
-
-        <div class="date-card">
-
-
-            <label class="date-label"
-                   for="expense_date_head">
-
-                Expense Date
-
-            </label>
-
-
-            <input type="date"
-                   id="expense_date_head"
-                   name="expense_date"
-                   class="form-control"
-                   value="{{ today|date:'Y-m-d' }}"
-                   required>
-
-
-        </div>
-
-
-        <!-- BRANCH EXPENSE PANEL -->
+        <!-- =================================================
+             BRANCH EXPENSE DETAILS
+        ================================================== -->
 
         <div class="expense-panel">
 
@@ -1549,16 +1678,11 @@
                 <div>
 
                     <div class="panel-title">
-
                         Branch Expense Details
-
                     </div>
 
-
                     <div class="panel-description">
-
                         Add amount and remark for each branch.
-
                     </div>
 
                 </div>
@@ -1601,27 +1725,19 @@
 
                 <div class="expense-head-cell">
 
-
                     <div class="expense-icon">
-
                         <i class="ph ph-buildings"></i>
-
                     </div>
 
 
                     <div>
 
                         <div class="branch-name">
-
                             {{ row.branch.name }}
-
                         </div>
 
-
                         <div class="branch-subtext">
-
                             Branch Expense
-
                         </div>
 
                     </div>
@@ -1633,12 +1749,14 @@
 
                 <div>
 
-                    <input type="number"
-                           name="branch_amount_{{ row.branch.id }}"
-                           class="form-control amount-input"
-                           placeholder="0.00"
-                           step="0.01"
-                           min="0">
+                    <input
+                        type="number"
+                        name="branch_amount_{{ row.branch.id }}"
+                        class="form-control amount-input"
+                        placeholder="0.00"
+                        step="any"
+                        min="0"
+                    >
 
                 </div>
 
@@ -1647,47 +1765,41 @@
 
                 <div>
 
-                    <textarea
+                    <input
+                        type="text"
                         name="branch_remark_{{ row.branch.id }}"
                         class="form-control remark-input"
-                        placeholder="Enter remark..."></textarea>
+                        placeholder="Enter remark..."
+                    >
 
                 </div>
 
 
-                <!-- VEHICLE -->
+                <!-- VEHICLE ONLY FOR VEHICLE EXPENSE -->
 
                 <div>
 
-
                     {% if selected_expense_head.name|lower == "vehicle expense" %}
-
 
                         <div class="vehicle-section">
 
-
                             <label class="vehicle-label">
-
                                 Select Vehicle
-
                             </label>
 
 
                             <select
                                 name="branch_vehicle_{{ row.branch.id }}"
                                 class="form-control vehicle-select"
-                                data-details-target="branch-vehicle-details-{{ row.branch.id }}">
-
+                                data-details-target="branch-vehicle-details-{{ row.branch.id }}"
+                            >
 
                                 <option value="">
-
                                     Select Vehicle
-
                                 </option>
 
 
                                 {% for vehicle in row.vehicles %}
-
 
                                     <option
                                         value="{{ vehicle.id }}"
@@ -1695,52 +1807,38 @@
                                         data-type="{{ vehicle.vehicle_type }}"
                                         data-driver="{{ vehicle.driver_name }}"
                                         data-phone="{{ vehicle.driver_phone }}"
-                                        data-branch="{{ vehicle.branch.name }}">
-
+                                        data-branch="{{ vehicle.branch.name }}"
+                                    >
                                         {{ vehicle.vehicle_number }}
-
                                     </option>
 
-
                                 {% endfor %}
-
 
                             </select>
 
 
                             <div
                                 id="branch-vehicle-details-{{ row.branch.id }}"
-                                class="vehicle-details">
-
+                                class="vehicle-details"
+                            >
 
                                 <div class="vehicle-detail-title">
-
                                     Vehicle Details
-
                                 </div>
-
 
                                 <div class="vehicle-detail-text"></div>
 
-
                             </div>
 
-
                         </div>
-
 
                     {% else %}
 
-
                         <div class="branch-subtext">
-
-                            No additional details required
-
+                            -
                         </div>
 
-
                     {% endif %}
-
 
                 </div>
 
@@ -1750,33 +1848,21 @@
 
             {% empty %}
 
-
                 <div class="empty-state">
 
-
                     <div class="empty-icon">
-
                         <i class="ph ph-buildings"></i>
-
                     </div>
-
 
                     <div class="empty-title">
-
                         No Branches Found
-
                     </div>
-
 
                     <div class="empty-text">
-
                         Please create an active branch before adding expenses.
-
                     </div>
 
-
                 </div>
-
 
             {% endfor %}
 
@@ -1788,26 +1874,22 @@
 
         <div class="action-bar">
 
-
-            <a href="{% url 'expense_list' %}"
-               class="btn btn-cancel">
-
+            <a
+                href="{% url 'expense_list' %}"
+                class="btn btn-cancel"
+            >
                 <i class="ph ph-x"></i>
-
                 Cancel
-
             </a>
 
 
-            <button type="submit"
-                    class="btn btn-save">
-
+            <button
+                type="submit"
+                class="btn btn-save"
+            >
                 <i class="ph ph-floppy-disk"></i>
-
                 Save Expenses
-
             </button>
-
 
         </div>
 
@@ -1823,33 +1905,21 @@
 
     {% if not entry_mode %}
 
-
     <div class="empty-state">
 
-
         <div class="empty-icon">
-
             <i class="ph ph-faders"></i>
-
         </div>
-
 
         <div class="empty-title">
-
             Select an Entry Type
-
         </div>
-
 
         <div class="empty-text">
-
             Choose Branch or Expense Head from the dropdown above.
-
         </div>
 
-
     </div>
-
 
     {% endif %}
 
@@ -1869,7 +1939,9 @@ document.addEventListener(
         ================================================== */
 
         const entryType =
-            document.getElementById("entry_type");
+            document.getElementById(
+                "entry_type"
+            );
 
 
         const branchBox =
@@ -1902,11 +1974,9 @@ document.addEventListener(
 
         if (entryType) {
 
-
             entryType.addEventListener(
                 "change",
                 function () {
-
 
                     const selectedType =
                         this.value;
@@ -1932,7 +2002,7 @@ document.addEventListener(
                     }
 
 
-                    /* Reset */
+                    /* Reset second dropdowns */
 
                     if (branchSelector) {
 
@@ -1990,25 +2060,21 @@ document.addEventListener(
 
 
         /* =================================================
-           BRANCH
+           BRANCH SELECTION
         ================================================== */
 
         if (branchSelector) {
 
-
             branchSelector.addEventListener(
                 "change",
                 function () {
-
 
                     const branchId =
                         this.value;
 
 
                     if (!branchId) {
-
                         return;
-
                     }
 
 
@@ -2025,25 +2091,21 @@ document.addEventListener(
 
 
         /* =================================================
-           EXPENSE HEAD
+           EXPENSE HEAD SELECTION
         ================================================== */
 
         if (expenseHeadSelector) {
 
-
             expenseHeadSelector.addEventListener(
                 "change",
                 function () {
-
 
                     const expenseHeadId =
                         this.value;
 
 
                     if (!expenseHeadId) {
-
                         return;
-
                     }
 
 
@@ -2072,7 +2134,6 @@ document.addEventListener(
         vehicleSelects.forEach(
             function (select) {
 
-
                 select.addEventListener(
                     "change",
                     function () {
@@ -2097,9 +2158,7 @@ document.addEventListener(
 
 
                         if (!target) {
-
                             return;
-
                         }
 
 
@@ -2162,24 +2221,19 @@ document.addEventListener(
 
                         if (detailText) {
 
-
                             detailText.textContent =
                                 "Vehicle Number: " +
                                 vehicleNumber +
                                 "\n" +
-
                                 "Vehicle Type: " +
                                 vehicleType +
                                 "\n" +
-
                                 "Branch: " +
                                 branchName +
                                 "\n" +
-
                                 "Driver Name: " +
                                 driverName +
                                 "\n" +
-
                                 "Driver Phone: " +
                                 driverPhone;
 
@@ -2197,6 +2251,7 @@ document.addEventListener(
         );
 
     }
+
 );
 
 </script>
