@@ -1,17 +1,212 @@
 {% extends 'base.html' %}
 
 {% block title %}Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Welcome to Parishudam Coconut Oil Management System{% endblock %}
+{% block page_title %}Profit & Loss Dashboard{% endblock %}
+{% block page_subtitle %}Overview of daily operations, expenses, net profit, and weekly branch targets{% endblock %}
 
 {% block header_actions %}
+<div style="display: flex; gap: 12px;">
+    <a href="{% url 'sales_entry' %}" class="btn-success">
+        <i class="ph-bold ph-plus"></i> Record Daily Sales
+    </a>
+    <a href="{% url 'expense_entry' %}" class="btn-secondary"
+        style="background: rgba(255,255,255,0.2); color: white; border-color: rgba(255,255,255,0.4);">
+        <i class="ph-bold ph-receipt"></i> Add Expense
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="list-container" style="padding: 60px 24px; text-align: center; color: #64748b;">
-    <i class="ph ph-squares-four"
-        style="font-size: 3.5rem; color: #cbd5e1; margin-bottom: 16px; display: inline-block;"></i>
-    <h3 style="font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Dashboard is empty</h3>
+
+<!-- Filter Bar -->
+<div class="filter-toolbar">
+    <form method="GET" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%;">
+        <div class="filter-item">
+            <label><i class="ph ph-calendar"></i> Select Date:</label>
+            <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" onchange="this.form.submit()">
+        </div>
+
+        {% if is_admin %}
+        <div class="filter-item">
+            <label><i class="ph ph-buildings"></i> Branch Filter:</label>
+            <select name="branch_id" onchange="this.form.submit()">
+                <option value="">All Branches (Head Office)</option>
+                {% for b in branches %}
+                <option value="{{ b.id }}" {% if selected_branch and selected_branch.id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        {% if selected_branch or date %}
+        <a href="{% url 'dashboard' %}" class="btn-secondary"
+            style="margin-left: auto; padding: 6px 12px; font-size: 0.8rem;">
+            <i class="ph ph-arrows-counter-clockwise"></i> Reset Filters
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="card-grid">
+
+    <!-- Today's Sales Profit -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Sales Profit (Today)</span>
+            <div class="kpi-icon" style="background: #dcfce7; color: #16a34a;">
+                <i class="ph-bold ph-trend-up"></i>
+            </div>
+        </div>
+        <div class="kpi-value">₹{{ today_profit|default_if_none:0|floatformat:2 }}</div>
+        <div class="kpi-footer">
+            Date: <strong>{{ today|date:"d M Y" }}</strong>
+        </div>
+    </div>
+
+    <!-- Today's Expenses -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Expenses (Today)</span>
+            <div class="kpi-icon" style="background: #fee2e2; color: #dc2626;">
+                <i class="ph-bold ph-receipt"></i>
+            </div>
+        </div>
+        <div class="kpi-value">₹{{ today_expense|default_if_none:0|floatformat:2 }}</div>
+        <div class="kpi-footer">
+            Total branch expense entries
+        </div>
+    </div>
+
+    <!-- Today's Net Profit -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Net Profit (Today)</span>
+            <div class="kpi-icon"
+                style="background: {% if today_net_profit is None or today_net_profit >= 0 %}#e0e7ff{% else %}#fee2e2{% endif %}; color: {% if today_net_profit is None or today_net_profit >= 0 %}#4f46e5{% else %}#dc2626{% endif %};">
+                <i class="ph-bold ph-scales"></i>
+            </div>
+        </div>
+        <div class="kpi-value" style="color: {% if today_net_profit is None or today_net_profit >= 0 %}#16a34a{% else %}#dc2626{% endif %};">
+            ₹{{ today_net_profit|default_if_none:0|floatformat:2 }}
+        </div>
+        <div class="kpi-footer">
+            Gross Sales Profit - Total Expense
+        </div>
+    </div>
+
+    <!-- Weekly Target Progress -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Weekly Target Status</span>
+            <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">
+                <i class="ph-bold ph-target"></i>
+            </div>
+        </div>
+        <div class="kpi-value">{{ achievement_pct|default_if_none:0|floatformat:1 }}%</div>
+        <div class="kpi-footer">
+            Achieved: <strong>{{ total_achieved_litres|default_if_none:0|floatformat:1 }} L</strong> / Target: <strong>{{ total_target_litres|default_if_none:0|floatformat:1 }} L</strong>
+        </div>
+        <!-- Progress Bar -->
+        <div
+            style="width: 100%; background: #e2e8f0; border-radius: 6px; height: 8px; margin-top: 10px; overflow: hidden;">
+            <div
+                style="width: {{ achievement_pct|default:0 }}%; background: {% if achievement_pct >= 100 %}#16a34a{% elif achievement_pct >= 70 %}#4f46e5{% else %}#d97706{% endif %}; height: 100%;">
+            </div>
+        </div>
+    </div>
 
 </div>
+
+
+<!-- Weekly Aggregate Cards Row -->
+<div class="card-grid">
+    <div class="kpi-card" style="border-left: 4px solid #4f46e5;">
+        <div class="kpi-header">
+            <span>Weekly Sales Profit</span>
+            <i class="ph ph-calendar-blank" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="kpi-value" style="font-size: 1.4rem;">₹{{ weekly_profit|default_if_none:0|floatformat:2 }}</div>
+        <div class="kpi-footer">Current Week Cumulative Profit</div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+        <div class="kpi-header">
+            <span>Weekly Expenses</span>
+            <i class="ph ph-wallet" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="kpi-value" style="font-size: 1.4rem;">₹{{ weekly_expense|default_if_none:0|floatformat:2 }}</div>
+        <div class="kpi-footer">Current Week Cumulative Expenses</div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #10b981;">
+        <div class="kpi-header">
+            <span>Weekly Net Profit</span>
+            <i class="ph ph-chart-line-up" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="kpi-value"
+            style="font-size: 1.4rem; color: {% if weekly_net_profit is None or weekly_net_profit >= 0 %}#16a34a{% else %}#dc2626{% endif %};">
+            ₹{{ weekly_net_profit|default_if_none:0|floatformat:2 }}
+        </div>
+        <div class="kpi-footer">Current Week Final Net Profit</div>
+    </div>
+</div>
+
+{% if is_admin and branch_summaries %}
+<!-- Admin Branch Performance Overview Table -->
+<div class="list-container">
+    <div class="list-header">
+        <h3 style="font-size: 1.05rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-buildings" style="color: #4f46e5;"></i> Today's Branch Performance Summary ({{ today|date:"d M Y" }})
+        </h3>
+        <a href="{% url 'report_daily' %}" class="btn-secondary">
+            <i class="ph ph-chart-line-up"></i> Full Branch Report
+        </a>
+    </div>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Branch Name</th>
+                <th>Today Sales Profit</th>
+                <th>Today Expenses</th>
+                <th>Today Net Profit</th>
+                <th>Weekly Target %</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in branch_summaries %}
+            <tr>
+                <td>
+                    <span style="font-weight: 600; color: #0f172a;">{{ row.branch.name }}</span>
+                </td>
+                <td style="color: #16a34a; font-weight: 600;">₹{{ row.today_sales|default_if_none:0|floatformat:2 }}</td>
+                <td style="color: #dc2626; font-weight: 600;">₹{{ row.today_expense|default_if_none:0|floatformat:2 }}</td>
+                <td style="font-weight: 700; color: {% if row.today_net is None or row.today_net >= 0 %}#16a34a{% else %}#dc2626{% endif %};">
+                    ₹{{ row.today_net|default_if_none:0|floatformat:2 }}
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 600; font-size: 0.85rem;">{{ row.target_pct|default_if_none:0|floatformat:1 }}%</span>
+                        <div
+                            style="width: 80px; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
+                            <div
+                                style="width: {{ row.target_pct|default:0 }}%; background: {% if row.target_pct >= 100 %}#16a34a{% elif row.target_pct >= 70 %}#4f46e5{% else %}#d97706{% endif %}; height: 100%;">
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <a href="{% url 'sales_entry' %}?branch_id={{ row.branch.id }}&sale_date={{ today|date:'Y-m-d' }}"
+                        class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">
+                        View / Edit Sales
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% endblock %}

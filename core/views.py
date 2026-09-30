@@ -10,7 +10,7 @@ from django.db.models import ProtectedError
 import json
 from django.http import JsonResponse
 from .models import Branch, StaffProfile, Product, ProductPackingSize, Unit, ProductMargin ,PackingUnit
-from operations.models import Expense,Vehicle,ExpenseHead
+from operations.models import DailySale, Expense, Vehicle, ExpenseHead
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -47,13 +47,117 @@ def logout_view(request):
 def dashboard_view(request):
     user_profile = getattr(request.user, 'profile', None)
     is_admin = user_profile.is_admin if user_profile else request.user.is_superuser
-    
-    today = timezone.now().date()
+
+    # Date filter parsing
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            today = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            today = timezone.now().date()
+    else:
+        today = timezone.now().date()
+
+    # Branch filter
+    branch_id = request.GET.get('branch_id')
+    selected_branch = None
+
+    if not is_admin and user_profile and user_profile.branch:
+        selected_branch = user_profile.branch
+    elif branch_id:
+        selected_branch = Branch.objects.filter(id=branch_id).first()
+
+    # Calculate Weekly range (Monday to Sunday)
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+
+    # Sales Queryset
+    sales_qs = DailySale.objects.filter(sale_date=today)
+    weekly_sales_qs = DailySale.objects.filter(sale_date__gte=start_of_week, sale_date__lte=end_of_week)
+
+    # Expense Queryset
+    expense_qs = Expense.objects.filter(expense_date=today)
+    weekly_expense_qs = Expense.objects.filter(expense_date__gte=start_of_week, expense_date__lte=end_of_week)
+
+    if selected_branch:
+        sales_qs = sales_qs.filter(branch=selected_branch)
+        weekly_sales_qs = weekly_sales_qs.filter(branch=selected_branch)
+        expense_qs = expense_qs.filter(branch=selected_branch)
+        weekly_expense_qs = weekly_expense_qs.filter(branch=selected_branch)
+
+    # Aggregations
+    today_profit = sales_qs.aggregate(val=Sum('profit'))['val'] or 0.00
+    today_expense = expense_qs.aggregate(val=Sum('amount'))['val'] or 0.00
+    today_net_profit = float(today_profit) - float(today_expense)
+
+    weekly_profit = weekly_sales_qs.aggregate(val=Sum('profit'))['val'] or 0.00
+    weekly_expense = weekly_expense_qs.aggregate(val=Sum('amount'))['val'] or 0.00
+    weekly_net_profit = float(weekly_profit) - float(weekly_expense)
+
+    # Targets & Quantity calculation
+    total_target_litres = 0.0
+    try:
+        from targets.models import WeeklyTarget
+        targets_qs = WeeklyTarget.objects.filter(start_date__lte=today, end_date__gte=today)
+        if selected_branch:
+            targets_qs = targets_qs.filter(branch=selected_branch)
+        total_target_litres = sum(float(t.total_target_base_quantity) for t in targets_qs)
+        total_achieved_litres = sum(float(t.total_achieved_base_quantity) for t in targets_qs)
+    except Exception:
+        achieved = weekly_sales_qs.aggregate(val=Sum('base_quantity'))['val']
+        total_achieved_litres = float(achieved) if achieved else 0.0
+
+    if total_target_litres > 0:
+        achievement_pct = round((total_achieved_litres / total_target_litres) * 100.0, 1)
+    else:
+        achievement_pct = 0.0
+
     branches = Branch.objects.filter(status='active')
+    active_branches_count = branches.count()
+    active_staff_count = StaffProfile.objects.filter(status='active').count()
+
+    # Branch performance list for Admin
+    branch_summaries = []
+    if is_admin:
+        for b in branches:
+            b_sales = DailySale.objects.filter(branch=b, sale_date=today).aggregate(val=Sum('profit'))['val'] or 0.00
+            b_exp = Expense.objects.filter(branch=b, expense_date=today).aggregate(val=Sum('amount'))['val'] or 0.00
+            b_net = float(b_sales) - float(b_exp)
+
+            target_pct = 0.0
+            try:
+                from targets.models import WeeklyTarget
+                b_target = WeeklyTarget.objects.filter(branch=b, start_date__lte=today, end_date__gte=today).first()
+                if b_target and hasattr(b_target, 'achievement_percentage'):
+                    target_pct = b_target.achievement_percentage or 0.0
+            except Exception:
+                pass
+
+            branch_summaries.append({
+                'branch': b,
+                'today_sales': b_sales,
+                'today_expense': b_exp,
+                'today_net': b_net,
+                'target_pct': target_pct
+            })
 
     context = {
         'today': today,
+        'date': date_str or '',
+        'selected_branch': selected_branch,
         'branches': branches,
+        'today_profit': today_profit,
+        'today_expense': today_expense,
+        'today_net_profit': today_net_profit,
+        'weekly_profit': weekly_profit,
+        'weekly_expense': weekly_expense,
+        'weekly_net_profit': weekly_net_profit,
+        'total_target_litres': total_target_litres,
+        'total_achieved_litres': total_achieved_litres,
+        'achievement_pct': achievement_pct,
+        'active_branches_count': active_branches_count,
+        'active_staff_count': active_staff_count,
+        'branch_summaries': branch_summaries,
         'is_admin': is_admin,
     }
 
