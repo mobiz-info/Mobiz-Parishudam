@@ -93,6 +93,8 @@ WantedBy=multi-user.target
 Save: Ctrl+X → Y → Enter
 
 
+
+
 STEP 9: Start & Enable Service
 ---------------------------------
 systemctl daemon-reload
@@ -142,22 +144,7 @@ python3 manage.py createsuperuser --username admin --email admin@admin.com
 (Enter password when prompted, type 'y' to bypass weak password warning)
 
 
-STEP 12: Create Admin Profile (To Show All Menus)
----------------------------------------------------
-python3 manage.py shell -c "
-from django.contrib.auth.models import User
-from core.models import StaffProfile
 
-admin = User.objects.get(username='admin')
-profile, created = StaffProfile.objects.get_or_create(
-    user=admin,
-    defaults={'role': 'ADMIN', 'status': 'active'}
-)
-if not created:
-    profile.role = 'ADMIN'
-    profile.save()
-print('Done:', profile)
-"
 
 
 STEP 13: Verify
