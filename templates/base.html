@@ -609,7 +609,7 @@
                 </div>
             </a>
 
-            {% if request.user.profile.is_admin %}
+            {% if request.user.is_superuser or request.user.profile.is_admin %}
 
             <div class="nav-section-title">ADMINISTRATIVE MASTERS</div>
 
@@ -689,7 +689,8 @@
                     <div class="user-chip">
                         <i class="ph-fill ph-user-circle"></i>
                         <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-                        <span style="opacity: 0.7; font-size: 0.75rem;">({{ request.user.profile.role }})</span>
+                        <span style="opacity: 0.7; font-size: 0.75rem;">({{ request.user.profile.role|default:"ADMIN"
+                            }})</span>
                     </div>
                     <a href="{% url 'logout' %}" class="logout-btn">
                         <i class="ph-bold ph-sign-out"></i> Logout
