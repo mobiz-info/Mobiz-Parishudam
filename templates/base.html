@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -5,18 +6,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Parishudam Coconut Oil | {% block title %}P&L Dashboard{% endblock %}</title>
+
     <link rel="icon" type="image/jpeg" href="{% static 'images/parishudam.jpeg' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
         :root {
             --bg-sidebar: #1e293b;
-            /* Dark Slate */
             --bg-body: #f8fafc;
-            /* Light gray */
             --bg-banner: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            /* Premium Indigo/Violet gradient */
             --text-sidebar: #cbd5e1;
             --text-sidebar-hover: #ffffff;
             --sidebar-border: #334155;
@@ -41,13 +42,15 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--bg-sidebar);
             display: flex;
             flex-direction: column;
             position: fixed;
+            top: 0;
+            left: 0;
             height: 100vh;
             overflow-y: auto;
             z-index: 100;
@@ -72,6 +75,7 @@
             color: white;
             border-bottom: 1px solid var(--sidebar-border);
             height: 60px;
+            flex-shrink: 0;
         }
 
         .sidebar-header i {
@@ -89,7 +93,7 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             font-weight: 700;
-            margin: 16px 16px 8px 16px;
+            margin: 16px 16px 8px;
         }
 
         .nav-item {
@@ -115,10 +119,12 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
         }
 
-        .nav-item i.ph {
+        .nav-item-left i.ph {
             font-size: 1.15rem;
+            flex-shrink: 0;
         }
 
         .nav-badge {
@@ -158,22 +164,24 @@
             text-decoration: none;
             font-size: 0.82rem;
             font-weight: 400;
-            transition: color 0.2s;
+            transition: color 0.2s, background-color 0.2s;
         }
 
         .nav-submenu a:hover,
         .nav-submenu a.active {
             color: white;
             font-weight: 500;
+            background-color: rgba(255, 255, 255, 0.06);
         }
 
-        /* Main Content Wrapper */
+        /* Main Content */
         .main-wrapper {
             flex: 1;
             margin-left: var(--sidebar-width);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            min-width: 0;
         }
 
         .top-banner {
@@ -185,11 +193,12 @@
         }
 
         .top-navbar {
-            height: 60px;
+            min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 10px 24px;
+            gap: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         }
 
@@ -199,12 +208,22 @@
             gap: 12px;
             font-size: 1.05rem;
             font-weight: 600;
+            min-width: 0;
+        }
+
+        .navbar-left > i {
+            flex-shrink: 0;
+        }
+
+        .navbar-left span {
+            overflow-wrap: anywhere;
         }
 
         .navbar-right {
             display: flex;
             align-items: center;
             gap: 16px;
+            min-width: 0;
         }
 
         .navbar-right .user-chip {
@@ -216,6 +235,15 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 500;
+            min-width: 0;
+        }
+
+        .user-chip i {
+            flex-shrink: 0;
+        }
+
+        .user-chip span {
+            overflow-wrap: anywhere;
         }
 
         .navbar-right a.logout-btn {
@@ -230,6 +258,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .navbar-right a.logout-btn:hover {
@@ -238,10 +267,11 @@
         }
 
         .banner-header {
-            padding: 28px 24px 44px 24px;
+            padding: 28px 24px 44px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
         }
 
         .banner-title {
@@ -257,12 +287,13 @@
         }
 
         .content-area {
-            padding: 0 24px 24px 24px;
+            padding: 0 24px 24px;
             margin-top: -24px;
             flex: 1;
+            min-width: 0;
         }
 
-        /* Responsive Tables & Cards */
+        /* Dashboard Cards */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -321,6 +352,7 @@
             color: #64748b;
         }
 
+        /* Lists */
         .list-container {
             background: white;
             border-radius: 12px;
@@ -368,6 +400,7 @@
             font-size: 1.1rem;
         }
 
+        /* Buttons */
         .btn-primary {
             background: #4f46e5;
             color: white;
@@ -428,6 +461,7 @@
             color: #0f172a;
         }
 
+        /* Tables */
         .premium-table {
             width: 100%;
             border-collapse: collapse;
@@ -456,6 +490,7 @@
             background-color: #f8fafc;
         }
 
+        /* Status Badges */
         .badge-status {
             display: inline-block;
             padding: 3px 10px;
@@ -485,7 +520,7 @@
             color: #b45309;
         }
 
-        /* Premium Form Layout */
+        /* Premium Form */
         .premium-form-container {
             max-width: 680px;
             background: white;
@@ -493,7 +528,7 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin: 0 auto 24px auto;
+            margin: 0 auto 24px;
         }
 
         .premium-form-title {
@@ -587,22 +622,139 @@
             border-radius: 6px;
             font-size: 0.85rem;
         }
+
+        /* Django messages */
+        .messages-container {
+            margin-bottom: 20px;
+        }
+
+        .message-alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .message-success {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .message-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .message-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .message-info {
+            background: #e0e7ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        .message-default {
+            background: #e0e7ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            :root {
+                --sidebar-width: 220px;
+            }
+
+            .top-navbar {
+                padding: 10px 16px;
+            }
+
+            .content-area {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .premium-table th,
+            .premium-table td {
+                padding: 12px 14px;
+            }
+        }
+
+        @media (max-width: 650px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .top-navbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .navbar-right {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .banner-header {
+                padding: 24px 16px 38px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .banner-title {
+                font-size: 1.35rem;
+            }
+
+            .content-area {
+                padding: 0 12px 20px;
+            }
+
+            .premium-form-container {
+                padding: 20px;
+            }
+
+            .list-header {
+                padding: 16px;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+        }
     </style>
+
+    <!-- Page-specific CSS must stay outside the main style tag -->
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-        <div class="sidebar-header" style="display: flex; align-items: center; gap: 10px;">
-            <img src="{% static 'images/parishudam.jpeg' %}" alt="Parishudam Logo"
-                style="height: 38px; width: auto; max-width: 140px; border-radius: 6px; object-fit: contain; background: white; padding: 3px 6px;">
-            <span style="font-weight: 700; letter-spacing: 0.5px;">P&L</span>
+        <div class="sidebar-header">
+            <img
+                src="{% static 'images/parishudam.jpeg' %}"
+                alt="Parishudam Logo"
+                style="height: 38px; width: auto; max-width: 140px; border-radius: 6px; object-fit: contain; background: white; padding: 3px 6px;"
+            >
+            <span style="font-weight: 700; letter-spacing: 0.5px;">P&amp;L</span>
         </div>
+
         <div class="sidebar-content">
 
             <a href="{% url 'dashboard' %}"
-                class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+               class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <div class="nav-item-left">
                     <i class="ph ph-squares-four"></i>
                     Dashboard
@@ -613,7 +765,6 @@
 
             <div class="nav-section-title">ADMINISTRATIVE MASTERS</div>
 
-            <!-- Masters Dropdown -->
             <div class="nav-item dropdown-toggle">
                 <div class="nav-item-left">
                     <i class="ph ph-sliders"></i>
@@ -621,19 +772,16 @@
                 </div>
                 <i class="ph-bold ph-caret-right nav-right-icon"></i>
             </div>
+
             <div class="nav-submenu">
                 <a href="{% url 'branch_list' %}">Branches</a>
                 <a href="{% url 'staff_list' %}">Staff Members</a>
                 <a href="{% url 'product_list' %}">Products</a>
                 <a href="{% url 'product_packing_size_list' %}">Product Packing Sizes</a>
                 <a href="{% url 'packing_unit_list' %}">Packing Units</a>
-                <a href="{% url 'unit_list' %}">Units</a>
                 <a href="{% url 'margin_list' %}">Margins</a>
                 <a href="{% url 'vehicle_list' %}">Vehicle</a>
                 <a href="{% url 'expense_head_list' %}">Expense Heads</a>
-
-
-
             </div>
 
             <div class="nav-section-title">OPERATIONS</div>
@@ -645,28 +793,27 @@
                 </div>
                 <i class="ph-bold ph-caret-right nav-right-icon"></i>
             </div>
+
             <div class="nav-submenu">
                 <a href="{% url 'sales_entry' %}">Record Daily Sales</a>
                 <a href="{% url 'sales_list' %}">Sales History</a>
-
                 <a href="{% url 'expense_list' %}">Expenses</a>
-
             </div>
 
-            <div class="nav-section-title">REPORTS & ANALYTICS</div>
+            <div class="nav-section-title">REPORTS &amp; ANALYTICS</div>
 
             <div class="nav-item dropdown-toggle">
                 <div class="nav-item-left">
                     <i class="ph ph-chart-line-up"></i>
-                    P&L Reports
+                    P&amp;L Reports
                 </div>
                 <i class="ph-bold ph-caret-right nav-right-icon"></i>
             </div>
-            <div class="nav-submenu">
-                <a href="{% url 'report_daily' %}">Daily P&L</a>
-                <a href="{% url 'report_weekly' %}">Weekly P&L</a>
-                <a href="{% url 'report_monthly_yearly' %}">Monthly / Yearly P&L</a>
 
+            <div class="nav-submenu">
+                <a href="{% url 'report_daily' %}">Daily P&amp;L</a>
+                <a href="{% url 'report_weekly' %}">Weekly P&amp;L</a>
+                <a href="{% url 'report_monthly_yearly' %}">Monthly / Yearly P&amp;L</a>
             </div>
 
             {% endif %}
@@ -677,68 +824,108 @@
     <!-- Main Wrapper -->
     <div class="main-wrapper">
 
-        <!-- Top Banner Header -->
+        <!-- Top Banner -->
         <div class="top-banner">
+
             <div class="top-navbar">
                 <div class="navbar-left">
                     <i class="ph-bold ph-buildings"></i>
-                    <span>{% if request.user.profile.branch %}{{ request.user.profile.branch.name }} Branch{% else
-                        %}Head Office (All Branches){% endif %}</span>
+                    <span>
+                        {% if request.user.profile.branch %}
+                            {{ request.user.profile.branch.name }} Branch
+                        {% else %}
+                            Head Office (All Branches)
+                        {% endif %}
+                    </span>
                 </div>
+
                 <div class="navbar-right">
                     <div class="user-chip">
                         <i class="ph-fill ph-user-circle"></i>
                         <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-                        <span style="opacity: 0.7; font-size: 0.75rem;">({{ request.user.profile.role|default:"ADMIN"
-                            }})</span>
                     </div>
+
                     <a href="{% url 'logout' %}" class="logout-btn">
-                        <i class="ph-bold ph-sign-out"></i> Logout
+                        <i class="ph-bold ph-sign-out"></i>
+                        Logout
                     </a>
                 </div>
             </div>
+
             <div class="banner-header">
                 <div>
-                    <h1 class="banner-title">{% block page_title %}Dashboard{% endblock %}</h1>
-                    <p class="banner-subtitle">{% block page_subtitle %}Parishudam Coconut Oil Profit & Loss
-                        Management{% endblock %}</p>
+                    <h1 class="banner-title">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </h1>
+
+                    <p class="banner-subtitle">
+                        {% block page_subtitle %}Parishudam Coconut Oil Profit &amp; Loss Management{% endblock %}
+                    </p>
                 </div>
+
                 <div>
                     {% block header_actions %}{% endblock %}
                 </div>
             </div>
+
         </div>
 
         <!-- Content Area -->
         <main class="content-area">
+
             {% if messages %}
-            <div style="margin-bottom: 20px;">
+            <div class="messages-container">
                 {% for message in messages %}
-                <div style="padding: 12px 18px; border-radius: 8px; font-weight: 500; margin-bottom: 10px; 
-                             {% if message.tags == 'success' %}background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
-                             {% elif message.tags == 'error' %}background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;
-                             {% else %}background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;{% endif %}">
-                    {{ message }}
-                </div>
+                    {% if 'success' in message.tags %}
+                        <div class="message-alert message-success">
+                            {{ message }}
+                        </div>
+                    {% elif 'error' in message.tags %}
+                        <div class="message-alert message-error">
+                            {{ message }}
+                        </div>
+                    {% elif 'warning' in message.tags %}
+                        <div class="message-alert message-warning">
+                            {{ message }}
+                        </div>
+                    {% elif 'info' in message.tags %}
+                        <div class="message-alert message-info">
+                            {{ message }}
+                        </div>
+                    {% else %}
+                        <div class="message-alert message-default">
+                            {{ message }}
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
             {% endif %}
 
             {% block content %}{% endblock %}
+
         </main>
 
     </div>
 
     <script>
-        // Dropdown Accordion Toggle Script
+        // Dropdown accordion toggle
         document.querySelectorAll('.dropdown-toggle').forEach(item => {
             item.addEventListener('click', () => {
                 const submenu = item.nextElementSibling;
+
+                if (!submenu || !submenu.classList.contains('nav-submenu')) {
+                    return;
+                }
+
                 const isOpen = submenu.classList.contains('open');
 
-                // Close open submenus
-                document.querySelectorAll('.nav-submenu').forEach(sm => sm.classList.remove('open'));
-                document.querySelectorAll('.dropdown-toggle').forEach(dt => dt.classList.remove('open'));
+                document.querySelectorAll('.nav-submenu').forEach(sm => {
+                    sm.classList.remove('open');
+                });
+
+                document.querySelectorAll('.dropdown-toggle').forEach(dt => {
+                    dt.classList.remove('open');
+                });
 
                 if (!isOpen) {
                     submenu.classList.add('open');
@@ -747,21 +934,30 @@
             });
         });
 
-        // Automatically expand submenu if current page matches link
+        // Automatically expand submenu for the current page
         document.querySelectorAll('.nav-submenu a').forEach(link => {
-            if (link.href === window.location.href) {
+            const currentUrl = window.location.href.replace(/\/$/, '');
+            const linkUrl = link.href.replace(/\/$/, '');
+
+            if (linkUrl === currentUrl) {
                 link.classList.add('active');
+
                 const parentSubmenu = link.closest('.nav-submenu');
+
                 if (parentSubmenu) {
                     parentSubmenu.classList.add('open');
-                    if (parentSubmenu.previousElementSibling) {
-                        parentSubmenu.previousElementSibling.classList.add('open');
+
+                    const parentToggle = parentSubmenu.previousElementSibling;
+
+                    if (parentToggle) {
+                        parentToggle.classList.add('open');
                     }
                 }
             }
         });
     </script>
-    {% block extra_js %}{% endblock %}
-</body>
 
+    {% block extra_js %}{% endblock %}
+
+</body>
 </html>

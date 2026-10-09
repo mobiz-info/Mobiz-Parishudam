@@ -9,7 +9,7 @@ from datetime import datetime, date, timedelta
 from django.db.models import ProtectedError
 import json
 from django.http import JsonResponse
-from .models import Branch, StaffProfile, Product, ProductPackingSize, Unit, ProductMargin ,PackingUnit
+from .models import Branch, StaffProfile, Product, ProductPackingSize, ProductMargin, PackingUnit
 from operations.models import DailySale, Expense, Vehicle, ExpenseHead
 
 def login_view(request):
@@ -374,65 +374,19 @@ def staff_toggle_view(request, pk):
     messages.success(request, f"Staff '{profile.user.username}' status updated to {profile.status.upper()}.")
     return redirect('staff_list')
 
-# --- UNIT MANAGEMENT ---
-
-@login_required
-def unit_list_view(request):
-    if not request.user.profile.is_admin:
-        messages.error(request, "Permission denied.")
-        return redirect('dashboard')
-
-    units = Unit.objects.all()
-    return render(request, 'units/unit_list.html', {'units': units})
-
-@login_required
-def unit_create_view(request):
-    if not request.user.profile.is_admin:
-        messages.error(request, "Permission denied.")
-        return redirect('dashboard')
-
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-
-        if not name:
-            messages.error(request, "Unit name is required.")
-        elif Unit.objects.filter(name__iexact=name).exists():
-            messages.error(request, "This unit already exists.")
-        else:
-            Unit.objects.create(name=name)
-            messages.success(request, f"Unit '{name}' created successfully.")
-            return redirect('unit_list')
-
-    return render(request, 'units/unit_form.html', {
-        'title': 'Add New Unit'
-    })
-
-@login_required
-def unit_delete_view(request, pk):
-    if not request.user.profile.is_admin:
-        messages.error(request, "Permission denied.")
-        return redirect('dashboard')
-
-    unit = get_object_or_404(Unit, pk=pk)
-
-    try:
-        unit.delete()
-        messages.success(request, f"Unit '{unit.name}' deleted successfully.")
-    except ProtectedError:
-        messages.error(request, "This unit is already used by a product and cannot be deleted.")
-
-    return redirect('unit_list')
-
-
 # --- PRODUCT MANAGEMENT ---
+
 @login_required
 def product_list_view(request):
     if not request.user.profile.is_admin:
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
 
-    products = Product.objects.all()
-    return render(request, 'products/product_list.html', {'products': products})
+    products = Product.objects.all().order_by('-id')
+
+    return render(request, 'products/product_list.html', {
+        'products': products
+    })
 
 
 @login_required
@@ -441,34 +395,27 @@ def product_create_view(request):
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
 
-    units = Unit.objects.all()
-
     if request.method == 'POST':
         product_name = request.POST.get('product_name', '').strip()
-        unit_id = request.POST.get('unit')
 
         if not product_name:
             messages.error(request, "Product name is required.")
-        elif not unit_id:
-            messages.error(request, "Unit is required.")
-        elif not Unit.objects.filter(pk=unit_id).exists():
-            messages.error(request, "Selected unit is invalid.")
         else:
             Product.objects.create(
-                product_name=product_name,
-                unit_id=unit_id
+                product_name=product_name
             )
 
             messages.success(
                 request,
                 f"Product '{product_name}' created successfully."
             )
+
             return redirect('product_list')
 
     return render(request, 'products/product_form.html', {
-        'title': 'Add New Product',
-        'units': units
+        'title': 'Add New Product'
     })
+
 
 @login_required
 def product_edit_view(request, pk):
@@ -477,34 +424,28 @@ def product_edit_view(request, pk):
         return redirect('dashboard')
 
     product = get_object_or_404(Product, pk=pk)
-    units = Unit.objects.all()
 
     if request.method == 'POST':
         product_name = request.POST.get('product_name', '').strip()
-        unit_id = request.POST.get('unit')
 
         if not product_name:
             messages.error(request, "Product name is required.")
-        elif not unit_id:
-            messages.error(request, "Unit is required.")
-        elif not Unit.objects.filter(pk=unit_id).exists():
-            messages.error(request, "Selected unit is invalid.")
         else:
             product.product_name = product_name
-            product.unit_id = unit_id
             product.save()
 
             messages.success(
                 request,
-                f"Product '{product.product_name}' updated successfully."
+                f"Product '{product_name}' updated successfully."
             )
+
             return redirect('product_list')
 
     return render(request, 'products/product_form.html', {
         'product': product,
-        'units': units,
         'title': f'Edit Product: {product.product_name}'
     })
+
 
 @login_required
 def product_delete_view(request, pk):
@@ -514,8 +455,14 @@ def product_delete_view(request, pk):
 
     product = get_object_or_404(Product, pk=pk)
     product_name = product.product_name
+
     product.delete()
-    messages.success(request, f"Product '{product_name}' deleted successfully.")
+
+    messages.success(
+        request,
+        f"Product '{product_name}' deleted successfully."
+    )
+
     return redirect('product_list')
 
 

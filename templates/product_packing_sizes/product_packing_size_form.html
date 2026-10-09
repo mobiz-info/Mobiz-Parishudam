@@ -1,127 +1,360 @@
+
 {% extends 'base.html' %}
 
 {% block title %}{{ title }}{% endblock %}
-
 {% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Product packing configuration{% endblock %}
 
-{% block page_subtitle %}Manage product packing size{% endblock %}
+{% block extra_css %}
+<style>
+    .packing-wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .packing-panel {
+        background: #fff;
+        border: 1px solid #e4eaf3;
+        border-radius: 13px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(15, 40, 90, 0.055);
+    }
+
+    .packing-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 20px;
+        background: linear-gradient(110deg, #edf5ff 0%, #fff 85%);
+        border-bottom: 1px solid #e8eef7;
+    }
+
+    .packing-icon {
+        width: 39px;
+        height: 39px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: #2563eb;
+        color: #fff;
+        font-size: 20px;
+    }
+
+    .packing-top h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        color: #172554;
+    }
+
+    .packing-top p {
+        margin: 4px 0 0;
+        font-size: 11px;
+        color: #718096;
+    }
+
+    .packing-body {
+        padding: 20px;
+    }
+
+    .packing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px 18px;
+    }
+
+    .packing-field {
+        min-width: 0;
+    }
+
+    .packing-field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .packing-field .required {
+        color: #ef4444;
+    }
+
+    .packing-field input,
+    .packing-field select {
+        width: 100%;
+        height: 37px;
+        padding: 0 10px;
+        border: 1px solid #dce4ef;
+        border-radius: 7px;
+        background: #fff;
+        color: #1e293b;
+        font-family: inherit;
+        font-size: 11px;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .packing-field input::placeholder {
+        color: #a0aec0;
+    }
+
+    .packing-field input:focus,
+    .packing-field select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, .10);
+    }
+
+    .packing-field select {
+        cursor: pointer;
+    }
+
+    .packing-field small {
+        display: block;
+        margin-top: 5px;
+        color: #94a3b8;
+        font-size: 10px;
+    }
+
+    .packing-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #edf1f7;
+    }
+
+    .packing-note {
+        color: #94a3b8;
+        font-size: 10px;
+    }
+
+    .packing-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .packing-btn {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 13px;
+        border-radius: 7px;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .packing-cancel {
+        background: #fff;
+        border: 1px solid #dce4ef;
+        color: #475569;
+    }
+
+    .packing-cancel:hover {
+        background: #f8fafc;
+        border-color: #aab8cc;
+    }
+
+    .packing-save {
+        background: #2563eb;
+        border: 1px solid #2563eb;
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, .15);
+    }
+
+    .packing-save:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 600px) {
+        .packing-wrapper {
+            max-width: 100%;
+        }
+
+        .packing-body {
+            padding: 16px;
+        }
+
+        .packing-grid {
+            grid-template-columns: 1fr;
+            gap: 13px;
+        }
+
+        .packing-top {
+            padding: 13px 16px;
+        }
+
+        .packing-footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .packing-actions {
+            width: 100%;
+        }
+
+        .packing-btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="packing-wrapper">
 
-<div class="premium-form-container">
+    <section class="packing-panel">
 
-    <div class="premium-form-title">
-        {{ title }}
-    </div>
+        <div class="packing-top">
+            <div class="packing-icon">
+                <i class="ph ph-package"></i>
+            </div>
 
-    <form method="POST">
-        {% csrf_token %}
-
-        <!-- Product -->
-        <div class="form-group">
-            <label>Product *</label>
-
-            <select name="product" required>
-                <option value="">Select Product</option>
-
-                {% for product in products %}
-                <option value="{{ product.id }}"
-                    {% if packing_size and packing_size.product_id == product.id %}selected{% endif %}>
-                    {{ product.product_name }}
-                </option>
-                {% endfor %}
-
-            </select>
+            <div>
+                <h2>{{ title }}</h2>
+                <p>Configure product size, unit and pricing</p>
+            </div>
         </div>
 
+        <form method="POST" class="packing-body">
+            {% csrf_token %}
 
-        <!-- Packing Name -->
-        <div class="form-group">
-            <label>Packing Name *</label>
+            <div class="packing-grid">
 
-            <input type="text"
-                   name="packing_name"
-                   value="{{ packing_size.packing_name|default:'' }}"
-                   placeholder="e.g. 500ml, 1 Litre"
-                   required>
-        </div>
+                <!-- Product -->
+                <div class="packing-field">
+                    <label for="product">
+                        Product <span class="required">*</span>
+                    </label>
 
+                    <select name="product" id="product" required>
+                        <option value="">Select Product</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}" {% if packing_size and packing_size.product_id == product.id %}selected{% endif %}>
+                            {{ product.product_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-        <!-- Packing Value -->
-        <div class="form-group">
-            <label>Packing Value *</label>
+                <!-- Packing Name -->
+                <div class="packing-field">
+                    <label for="packing_name">
+                        Packing Name <span class="required">*</span>
+                    </label>
 
-            <input type="number"
-                   name="packing_value"
-                   value="{{ packing_size.packing_value|default:'' }}"
-                   step="0.01"
-                   min="0"
-                   placeholder="e.g. 500 or 1"
-                   required>
-        </div>
+                    <input
+                        type="text"
+                        name="packing_name"
+                        id="packing_name"
+                        value="{{ packing_size.packing_name|default:'' }}"
+                        placeholder="e.g. 500ml, 1 Litre"
+                        required
+                    >
+                </div>
 
+                <!-- Packing Value -->
+                <div class="packing-field">
+                    <label for="packing_value">
+                        Packing Value <span class="required">*</span>
+                    </label>
 
-        <!-- Packing Unit -->
-        <div class="form-group">
-            <label>Packing Unit *</label>
+                    <input
+                        type="number"
+                        name="packing_value"
+                        id="packing_value"
+                        value="{{ packing_size.packing_value|default:'' }}"
+                        step="0.01"
+                        min="0"
+                        placeholder="e.g. 500 or 1"
+                        required
+                    >
+                </div>
 
-            <select name="packing_unit" required>
-                <option value="">Select Packing Unit</option>
+                <!-- Packing Unit -->
+                <div class="packing-field">
+                    <label for="packing_unit">
+                        Packing Unit <span class="required">*</span>
+                    </label>
 
-                {% for unit in packing_units %}
-                <option value="{{ unit.id }}"
-                    {% if packing_size and packing_size.packing_unit_id == unit.id %}selected{% endif %}>
-                    {{ unit.name }}
-                </option>
-                {% endfor %}
+                    <select name="packing_unit" id="packing_unit" required>
+                        <option value="">Select Packing Unit</option>
+                        {% for unit in packing_units %}
+                        <option value="{{ unit.id }}" {% if packing_size and packing_size.packing_unit_id == unit.id %}selected{% endif %}>
+                            {{ unit.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            </select>
-        </div>
+                <!-- Base Quantity -->
+                <div class="packing-field">
+                    <label for="base_qty_unit">
+                        Base Quantity <span class="required">*</span>
+                    </label>
 
+                    <input
+                        type="number"
+                        name="base_qty_unit"
+                        id="base_qty_unit"
+                        value="{{ packing_size.base_qty_unit|default:'' }}"
+                        step="0.01"
+                        min="0"
+                        placeholder="e.g. 0.5 or 1"
+                        required
+                    >
+                </div>
 
-        <!-- Base Quantity -->
-        <div class="form-group">
-            <label>Base Quantity *</label>
+                <!-- Selling Price -->
+                <div class="packing-field">
+                    <label for="selling_price">Selling Price</label>
 
-            <input type="number"
-                   name="base_qty_unit"
-                   value="{{ packing_size.base_qty_unit|default:'' }}"
-                   step="0.01"
-                   min="0"
-                   placeholder="e.g. 0.5 or 1"
-                   required>
-        </div>
+                    <input
+                        type="number"
+                        name="selling_price"
+                        id="selling_price"
+                        value="{{ packing_size.selling_price|default:'' }}"
+                        step="0.01"
+                        min="0"
+                        placeholder="Enter selling price"
+                    >
+                </div>
 
+            </div>
 
-        <!-- Selling Price -->
-        <div class="form-group">
-            <label>Selling Price</label>
+            <div class="packing-footer">
+                <span class="packing-note">
+                    <span class="required">*</span> Required fields
+                </span>
 
-            <input type="number"
-                   name="selling_price"
-                   value="{{ packing_size.selling_price|default:'' }}"
-                   step="0.01"
-                   min="0"
-                   placeholder="Enter selling price">
-        </div>
+                <div class="packing-actions">
+                    <a href="{% url 'product_packing_size_list' %}"
+                       class="packing-btn packing-cancel">
+                        <i class="ph ph-x"></i>
+                        Cancel
+                    </a>
 
+                    <button type="submit" class="packing-btn packing-save">
+                        <i class="ph ph-check"></i>
+                        Save Packing
+                    </button>
+                </div>
+            </div>
 
-        <!-- Buttons -->
-        <div class="form-actions">
+        </form>
 
-            <a href="{% url 'product_packing_size_list' %}"
-               class="btn-secondary">
-                Cancel
-            </a>
-
-            <button type="submit" class="btn-primary">
-                Save Packing Size
-            </button>
-
-        </div>
-
-    </form>
+    </section>
 
 </div>
-
 {% endblock %}

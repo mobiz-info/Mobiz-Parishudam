@@ -22,24 +22,6 @@
             <input type="text" name="product_name" value="{{ product.product_name|default:'' }}" required>
         </div>
 
-        <div class="form-group">
-            <label>Unit *</label>
-
-            <div style="display: flex; gap: 8px; align-items: center;">
-
-                <select name="unit" id="unitSelect" required style="flex: 1;">
-                    <option value="">Select Unit</option>
-
-                    {% for unit in units %}
-                    <option value="{{ unit.id }}" {% if product.unit_id == unit.id %}selected{% endif %}>
-                        {{ unit.name }}
-                    </option>
-                    {% endfor %}
-
-                </select>
-
-            </div>
-        </div>
 
         <div class="form-actions">
 
